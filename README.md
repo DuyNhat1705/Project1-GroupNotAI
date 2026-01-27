@@ -28,8 +28,8 @@ Group_3_NguTuNhien/
 │   │   └── logger.py       # Collecting stats during runs
 │   │
 │   └── visualization/     
-│       └── __init__.py
+│       └── __init__.py     
 │
-├── main.py                 # The entry point where you link them
+├── main.py                 # Universl main, link the progess
 └── requirements.txt        
 ```

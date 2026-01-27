@@ -28,3 +28,11 @@ class BaseAlgorithm(ABC):
             tuple: (best_solution, best_fitness, history_log)
         """
         pass
+
+    # @abstractmethod
+    # def reconstruct_path(self, solution):
+    #     pass
+    #
+    # @abstractmethod
+    # def evaluate(self, solution):
+    #     pass
