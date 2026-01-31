@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 
-from src.problems.discrete import ShortestPath
+from src.problems.discrete import ShortestPathOnGraph
 from src.algorithms.classical.bfs import BFS
 
 # ==========================================
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     if not os.path.exists(data_path):
         print(f"Data file not found at {data_path}. Please create it.")
     else:
-        problem = ShortestPath(name="Shortest Path - Graph", filename=data_path, seed=42)
+        problem = ShortestPathOnGraph(name="Shortest Path - Graph", filename=data_path, seed=42)
 
 
         solver = BFS()

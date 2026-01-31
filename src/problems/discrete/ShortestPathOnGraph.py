@@ -3,7 +3,7 @@ import numpy as np
 import random
 from src.problems.base_problem import BaseProblem
 
-class ShortestPath(BaseProblem):
+class ShortestPathOnGraph(BaseProblem):
     def __init__(self, name, filename=None, directed=True, seed=None):
         """
         weighted adjacency list (dict)

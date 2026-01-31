@@ -28,7 +28,17 @@ class BaseAlgorithm(ABC):
             tuple: (best_solution, best_fitness, history_log)
         """
         pass
+    def getAlgorithmName(self):
+        return self.name
+    def runAlgorithm(self,problem,seed=None):
+        start = time.perf_counter()
+        result = self.solve(problem, seed)
+        end = time.perf_counter()
 
+        return {
+            "result": result,
+            "time(ms)": round((end - start)*1000,3)
+        }
     # @abstractmethod
     # def reconstruct_path(self, solution):
     #     pass
