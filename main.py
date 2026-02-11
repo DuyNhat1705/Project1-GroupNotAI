@@ -14,7 +14,6 @@ if __name__ == "__main__":
         "algorithm": algorithm.getAlgorithmName()
     }
     print("Time (in milliseconds):", answer["time(ms)"])
-    print("History:", answer["result"]["logger"].history["visited_nodes"])
     visualizer  = get_visualizer(visualizer_params)
     visualizer.animate()
 
