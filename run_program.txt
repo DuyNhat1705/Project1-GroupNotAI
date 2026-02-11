@@ -1,0 +1,2 @@
+Chạy file graph_viz.py: python -m src.visualization.graph_viz
+Chạy file main: python main.py

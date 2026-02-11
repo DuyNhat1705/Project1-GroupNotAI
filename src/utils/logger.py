@@ -5,7 +5,7 @@ class Logger:
         self.algo_name = algo_name
         self.meta = {
             "run_id": run_id, # assigned to distinguish multiple runs
-            "start_time": time.time(), # mark start time to calc duration
+            "start_time": time.perf_counter(), # mark start time to calc duration
             "runtime": 0
         }
 
@@ -26,6 +26,6 @@ class Logger:
             Called when algo terminates
             log the runtime and performance metrics
         """
-        self.meta["runtime"] = time.time() - self.meta["start_time"]
+        self.meta["runtime"] = (time.perf_counter() - self.meta["start_time"]) * 1000
         self.meta["best_solution"] = best_solution # reconstruct the best answer
         self.meta["best_fitness"] = best_fitness # performance of the best solution

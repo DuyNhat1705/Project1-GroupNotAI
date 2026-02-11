@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import time
 
 class BaseAlgorithm(ABC):
     """
@@ -30,15 +29,15 @@ class BaseAlgorithm(ABC):
         pass
     def getAlgorithmName(self):
         return self.name
-    def runAlgorithm(self,problem,seed=None):
-        start = time.perf_counter()
-        result = self.solve(problem, seed)
-        end = time.perf_counter()
+    # def runAlgorithm(self,problem,seed=None):
+    #     start = time.perf_counter()
+    #     result = self.solve(problem, seed)
+    #     end = time.perf_counter()
 
-        return {
-            "result": result,
-            "time(ms)": round((end - start)*1000,3)
-        }
+    #     return {
+    #         "result": result,
+    #         "time(ms)": round((end - start)*1000,3)
+    #     }
     # @abstractmethod
     # def reconstruct_path(self, solution):
     #     pass

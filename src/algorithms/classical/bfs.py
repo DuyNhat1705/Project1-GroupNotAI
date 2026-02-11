@@ -26,12 +26,13 @@ class BFS(BaseAlgorithm):
             ite += 1
 
             if current == goal:
-                path= self.reconstruct_path(predecessor, current, problem)
+                path= self.reconstruct_path(predecessor, current)
                 cost = problem.evaluate(path)
                 fitness = len(path) - 1 # not take weight in account
                 logger.log("cost", cost)
                 logger.finish(best_solution=path, best_fitness=fitness)
-                return path, cost, logger
+                return {"time(ms)":logger.meta["runtime"],
+                        "result":{"path": path, "cost": cost, "logger": logger}}
 
             neighbors = problem.get_neighbors(current)
 
@@ -46,9 +47,10 @@ class BFS(BaseAlgorithm):
 
         # No path found
         logger.finish(best_solution=[], best_fitness=float('inf'))
-        return [], float('inf'), logger
+        return {"time(ms)":logger.meta["runtime"],
+                "result": {"path": [], "cost": float('inf'), "logger": logger}}
 
-    def reconstruct_path(self, previous, current, problem):
+    def reconstruct_path(self, previous, current):
         complete_path = [current]
         while current in previous:
             current = previous[current]

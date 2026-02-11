@@ -137,26 +137,20 @@ def animate_graph(problem, history_edges, path, title="Graph Search", save_path=
 # real function will be implemented in main.py
 if __name__ == "__main__":
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(os.path.dirname(base_dir))
-    data_path = os.path.join(project_root, 'data', 'weighted_graph_ex1.txt')  # Point to your data file
 
-    if not os.path.exists(data_path):
-        print(f"Data file not found at {data_path}. Please create it.")
-    else:
-        problem = ShortestPathOnGraph(name="Shortest Path - Graph", filename=data_path, seed=42)
+    problem = ShortestPathOnGraph(directed=True, seed=42)
 
 
-        solver = BFS()
-        print("Running BFS...")
-        path, cost, logger_instance = solver.solve(problem)
+    solver = BFS()
+    print("Running BFS...")
+    answer = solver.runAlgorithm(problem)
 
-        history_edges = logger_instance.history.get("visited_edges", [])
+    history_edges = answer["result"]["logger"].history.get("visited_edges", [])
 
-        animate_graph(
-            problem=problem,
-            history_edges=history_edges,
-            path=path,
-            title="BFS Visualization",
-            save_path="output/bfs_solution.mp4"
-        )
+    animate_graph(
+        problem=problem,
+        history_edges=history_edges,
+        path=answer["result"]["path"],
+        title="BFS Visualization",
+        save_path="output/bfs_solution.mp4"
+    )
