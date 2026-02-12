@@ -34,8 +34,6 @@ class ArtificialBee(BaseAlgorithm):
             return (rand_mat < probs).astype(int)
 
 
-
-
     def solve(self, problem, seed=None):
         if seed is not None:
             np.random.seed(seed)

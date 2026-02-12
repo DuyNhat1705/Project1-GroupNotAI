@@ -12,17 +12,32 @@ class HillClimbing(BaseAlgorithm):
         """
         super().__init__("Hill Climbing", params)
 
-    def get_neighbor(self, cur_pos, lower, upper):
-        step = self.params["step"]
+    def get_neighbor(self, cur_pos, lower, upper, cont_flag):
 
-        # random small step from current postion
-        noise = np.random.normal(0, step, size=cur_pos.shape)
-        neigh = cur_pos + noise
+        if cont_flag:
+            step = self.params["step"]
 
-        # ensure the explored neighbors lay within bounds by clipping outrange value
-        neigh = np.clip(neigh, lower, upper)
+            # noise: exploring by take small step from current position
+            noise = np.random.normal(0, step, size=cur_pos.shape)
+            neigh = cur_pos + noise
 
-        return neigh
+            # ensure the explored neighbors lay within bounds by clipping outrange value
+            neigh = np.clip(neigh, lower, upper)
+
+            return neigh
+
+        else:
+            # Create a copy, do not change the current postion
+            bounds = [None, None]
+
+            neigh = cur_pos.copy()
+            n = len(neigh)
+
+            # Pick two random indices and swap them
+            i, j = random.sample(range(n), 2)
+            neigh[i], neigh[j] = neigh[j], neigh[i]
+
+            return neigh
 
     def solve(self, problem, seed=None):
         # Ensure repeatable runs if seed is provided
@@ -30,22 +45,29 @@ class HillClimbing(BaseAlgorithm):
             np.random.seed(seed)
             random.seed(seed)
 
-        bounds = problem.bounds
+        if problem.cont_flag:
+            # assign bounds and start with a random position
+            bounds = problem.bounds
+            lower_bound = bounds[:, 0]
+            upper_bound = bounds[:, 1]
+            cur = np.random.uniform(lower_bound, upper_bound, size=problem.dimension)
 
-        # Initialize random start
-        cur = np.random.uniform(bounds[0], bounds[1], size=problem.dimension)
+        else:
+            # TSP initialization (random path 0 to N-1)
+            cur = np.random.permutation(problem.dimension)
+            # Unused bounds are set to None
+            lower_bound, upper_bound = None, None
+
         cur_fit = problem.evaluate(cur)
 
         logger = Logger(self.name, run_id=seed)
-
         # log the position if move occurs
         logger.history["explored"] = []
-
         # Log starting point
         logger.history["explored"].append((cur, cur_fit))
 
         for ite in range(self.params["iteration"]):
-            next_pos = self.get_neighbor(cur, bounds[0], bounds[1])
+            next_pos = self.get_neighbor(cur, lower_bound, upper_bound, problem.cont_flag)
             next_fit = problem.evaluate(next_pos)
 
             # Hill Climbing Logic: Only move if better

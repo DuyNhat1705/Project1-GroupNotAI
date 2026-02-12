@@ -1,6 +1,4 @@
-import os
 import numpy as np
-import random
 from src.problems.base_problem import BaseProblem
 
 class TSPProblem(BaseProblem):
