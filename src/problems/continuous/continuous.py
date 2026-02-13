@@ -24,15 +24,15 @@ class Griewank_function(BaseProblem):
         """
         x = np.array(x)
 
-        # Term 1: Sum of squares
-        sum_sq = np.sum(x ** 2) / 4000.0
+        # Sum of squares
+        term1 = np.sum(x ** 2) / 4000.0
 
-        # Term 2: Product of cosines
-        # Note: i ranges from 1 to d (indices in formula are 1-based)
-        indices = np.arange(1, len(x) + 1)
-        prod_cos = np.prod(np.cos(x / np.sqrt(indices)))
+        # Product of cosines
+        # idx ranges from 1 to d
+        idx = np.arange(1, len(x) + 1)
+        term2 = np.prod(np.cos(x / np.sqrt(idx)))
 
-        return 1.0 + sum_sq - prod_cos
+        return 1.0 + term1 - term2
 
 
 class Ackley_function(BaseProblem):
@@ -41,18 +41,16 @@ class Ackley_function(BaseProblem):
 
     def evaluate(self, x):
         """
-        f(x) = -20 * exp(-0.2 * sqrt(1/d * sum(x^2)))
-               - exp(1/d * sum(cos(2*pi*x)))
-               + 20 + e
+        f(x) = -20 * exp(-0.2 * sqrt(1/d * sum(x^2))) - exp(1/d * sum(cos(2*pi*x))) + 20 + e
         """
         x = np.array(x)
-        d = float(len(x))
+        d = self.dimension
 
-        # Term 1: Exponential of sum squares
+        # Exponent of sum squares
         sum_sq = np.sum(x ** 2)
         term1 = -20.0 * np.exp(-0.2 * np.sqrt(sum_sq / d))
 
-        # Term 2: Exponential of cosine sum
+        # Exponent of cosine sum
         sum_cos = np.sum(np.cos(2 * np.pi * x))
         term2 = -np.exp(sum_cos / d)
 
@@ -65,7 +63,8 @@ class Sphere_function(BaseProblem):
 
     def evaluate(self, x):
       """
-      Sphere benchmark function: global minimum at f(0, ..., 0) = 0.
+      Sphere benchmark function: sum(x[i]**2)
+      global minimum at f(0, ..., 0) = 0.
       """
       x = np.array(x)
       z = 0.0
