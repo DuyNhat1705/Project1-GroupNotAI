@@ -1,80 +1,65 @@
-import os
 import numpy as np
-import random
 from src.problems.base_problem import BaseProblem
 
-class Rosenbrock_function(BaseProblem):
-    # minimum = 0 at x = [1 ; ... ; 1]
-    def __init__(self, name = "Rosenbrock", dimension = 3, bounds = [-1.0, 1.0], seed=None):
-        super().__init__(name, dimension=dimension, bounds=bounds)
+class ContinuousProblem(BaseProblem):
+    def __init__(self, name, dimension, min_val, max_val, global_x=None, global_min=0.0):
+        bounds = [(min_val, max_val)] * dimension
+        super().__init__(name, dimension, bounds=bounds, cont_flag=True)
+        self.min_range = min_val
+        self.max_range = max_val
+        self.global_x = global_x if global_x is not None else np.zeros(dimension)
+        self.global_min = global_min
 
+    def random_population(self, pop_size):
+        """Khởi tạo quần thể ngẫu nhiên trong bounds"""
+        return np.random.uniform(self.min_range, self.max_range, (pop_size, self.dimension))
+
+    def evaluate_population(self, population):
+        """Đánh giá cả quần thể (Vectorization)"""
+        return np.array([self.evaluate(ind) for ind in population])
+
+class Sphere(ContinuousProblem):
+    def __init__(self, dimension=2):
+        super().__init__("Sphere", dimension, -5.12, 5.12, np.zeros(dimension), 0.0)
     def evaluate(self, x):
-        """"
-        x[i] i from 0 to dimension-1 & x[i+1] from 1 to highest dimension
-        """
-        return np.sum((100*(x[1:]-x[:-1]**2)**2 + (1 - x[:-1])**2)**2)
+        return np.sum(x ** 2)
 
-class Griewank_function(BaseProblem):
-    def __init__(self, name = "Griewank", dimension=3, bounds=[-600.0, 600.0], seed=None):
-        super().__init__(name, dimension=dimension, bounds=bounds)
-
+class Rosenbrock(ContinuousProblem):
+    def __init__(self, dimension=2):
+        super().__init__("Rosenbrock", dimension, -10.0, 10.0, np.ones(dimension), 0.0)
     def evaluate(self, x):
-        """
-        f(x) = 1 + (1/4000) * sum(x_i^2) - prod(cos(x_i / sqrt(i)))
-        """
-        x = np.array(x)
+        return np.sum(100 * (x[1:] - x[:-1]**2)**2 + (x[:-1] - 1)**2)
 
-        # Sum of squares
-        term1 = np.sum(x ** 2) / 4000.0
-
-        # Product of cosines
-        # idx ranges from 1 to d
-        idx = np.arange(1, len(x) + 1)
-        term2 = np.prod(np.cos(x / np.sqrt(idx)))
-
-        return 1.0 + term1 - term2
-
-
-class Ackley_function(BaseProblem):
-    def __init__(self, name="Ackley", dimension=3, bounds=[-32.0, 32.0], seed=None):
-        super().__init__(name, dimension=dimension, bounds=bounds)
-
+class Griewank(ContinuousProblem):
+    def __init__(self, dimension=2):
+        super().__init__("Griewank", dimension, -50.0, 50.0, np.zeros(dimension), 0.0)
     def evaluate(self, x):
-        """
-        f(x) = -20 * exp(-0.2 * sqrt(1/d * sum(x^2))) - exp(1/d * sum(cos(2*pi*x))) + 20 + e
-        """
-        x = np.array(x)
+        sum_term = np.sum(x**2) / 4000
+        prod_term = np.prod(np.cos(x / np.sqrt(np.arange(1, self.dimension + 1))))
+        return 1 + sum_term - prod_term
+
+class Ackley(ContinuousProblem):
+    def __init__(self, dimension=2):
+        super().__init__("Ackley", dimension, -32.768, 32.768, np.zeros(dimension), 0.0)
+        self.a = 20; self.b = 0.2; self.c = 2 * np.pi
+    def evaluate(self, x):
         d = self.dimension
+        sum_sq = np.sum(x**2)
+        sum_cos = np.sum(np.cos(self.c * x))
+        return -self.a * np.exp(-self.b * np.sqrt(sum_sq / d)) - np.exp(sum_cos / d) + self.a + np.e
 
-        # Exponent of sum squares
-        sum_sq = np.sum(x ** 2)
-        term1 = -20.0 * np.exp(-0.2 * np.sqrt(sum_sq / d))
-
-        # Exponent of cosine sum
-        sum_cos = np.sum(np.cos(2 * np.pi * x))
-        term2 = -np.exp(sum_cos / d)
-
-        return term1 + term2 + 20.0 + np.e
-
-
-class Sphere_function(BaseProblem):
-    def __init__(self, name="Ackley", dimension=3, bounds=[-32.0, 32.0], seed=None):
-        super().__init__(name, dimension=dimension, bounds=bounds)
-
+class Rastrigin(ContinuousProblem):
+    def __init__(self, dimension=2):
+        super().__init__("Rastrigin", dimension, -5.12, 5.12, np.zeros(dimension), 0.0)
     def evaluate(self, x):
-      """
-      Sphere benchmark function: sum(x[i]**2)
-      global minimum at f(0, ..., 0) = 0.
-      """
-      x = np.array(x)
-      z = 0.0
-      for i in range(self.dimension):
-        z += x[i] ** 2
-      return z
+        return 10 * self.dimension + np.sum(x**2 - 10 * np.cos(2 * np.pi * x))
 
-
-
-
-
-
-
+class Michalewicz(ContinuousProblem):
+    def __init__(self, dimension=2, m=10):
+        g_x = np.array([2.20, 1.57]) if dimension == 2 else None
+        g_min = -1.8013 if dimension == 2 else None
+        super().__init__("Michalewicz", dimension, 0.0, np.pi, g_x, g_min)
+        self.m = m
+    def evaluate(self, x):
+        i = np.arange(1, self.dimension + 1)
+        return -np.sum(np.sin(x) * (np.sin(i * x**2 / np.pi)) ** (2 * self.m))

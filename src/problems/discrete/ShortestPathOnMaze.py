@@ -11,6 +11,7 @@ class ShortestPathOnMaze(BaseProblem):
         self.data_path = os.path.join(BaseProblem.project_root, 'data', '8x8_maze.txt')
         self.load_from_file(self.data_path)
         
+        
     def load_from_file(self, filename):
         with open(filename, "r") as file:
             lines = file.readlines()

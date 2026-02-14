@@ -29,6 +29,7 @@ class BaseAlgorithm(ABC):
         pass
     def getAlgorithmName(self):
         return self.name
+    
     # def runAlgorithm(self,problem,seed=None):
     #     start = time.perf_counter()
     #     result = self.solve(problem, seed)

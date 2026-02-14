@@ -15,6 +15,7 @@ class TSPProblem(BaseProblem):
 
         super().__init__(name="TSP", dimension=dim, bounds=bounds, cont_flag=False)
 
+
     def evaluate(self, solution):
         """
         Calculates total distance of the path.

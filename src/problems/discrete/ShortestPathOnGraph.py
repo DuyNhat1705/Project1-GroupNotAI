@@ -29,6 +29,7 @@ class ShortestPathOnGraph(BaseProblem):
     def __len__(self):
         return len(self.adj_list)
 
+
     def generate_coords(self, seed):
         """
         Assigns random (x, y) coordinate to every node (position on visualizer)
@@ -64,6 +65,7 @@ class ShortestPathOnGraph(BaseProblem):
         # If undirected, add edge v -> u
         if not self.directed:
             self.adj_list[v][u] = float(weight)
+
 
     def load_from_file(self, filename):
         """
@@ -102,9 +104,11 @@ class ShortestPathOnGraph(BaseProblem):
                 except ValueError:
                     print(f"Error on line {line_num}: Invalid weight")
 
+
     def get_neighbors(self, node):
         """Returns dict {neighbor: weight}"""
         return self.adj_list.get(node, {})
+
 
     def get_edge_cost(self, u, v):
         """Returns weight of the edge u->v"""
