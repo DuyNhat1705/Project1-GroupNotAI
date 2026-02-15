@@ -15,6 +15,7 @@ class DFS(BaseAlgorithm):
 
         logger = Logger(self.name, run_id=seed)
         logger.history["visited_edges"] = [] # Giữ nguyên key logger để visualize
+        logger.history["visited_edges"].append((start, start))
         ite = 0  # iteration count
 
         while len(stack) > 0:

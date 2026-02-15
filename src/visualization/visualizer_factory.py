@@ -41,7 +41,7 @@ def get_visualizer(params):
                 return GraphVisualizer(problem, history, path, title)
                 
             case "ShortestPathOnMaze":
-                history = result.get("logger", None).history.get("visited_nodes", [])
+                history = result.get("logger", None).history.get("visited_edges", [])
                 path = result.get("path", [])
                 title = params.get("algorithm") + " Visualization"
                 return MazeVisualizer(problem, history, path, title)

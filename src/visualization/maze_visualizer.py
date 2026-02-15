@@ -45,9 +45,10 @@ class MazeVisualizer(BaseVisualizer):
         ax.set_xticklabels([])
         ax.set_yticklabels([])
 
-        # --- STATIC START & GOAL ---
-        ax.scatter(start[0], start[1], c="green", s=250, zorder=10, label="Start")
-        ax.scatter(goal[0], goal[1], c="red", s=250, zorder=10, label="Goal")
+        # --- STATIC START & GOAL (Swap to X=col, Y=row) ---
+        # Note: start[1] is col (x), start[0] is row (y)
+        ax.scatter(start[1], start[0], c="green", s=250, zorder=10, label="Start")
+        ax.scatter(goal[1], goal[0], c="red", s=250, zorder=10, label="Goal")
 
         ax.legend(
             loc="center left",
@@ -73,10 +74,13 @@ class MazeVisualizer(BaseVisualizer):
             # --- Exploration Phase ---
             if frame < len(self.history):
 
-                r, c = self.history[frame]
+                # Unpack the edge tuple from BFS/DFS
+                current_node, neigh_node = self.history[frame]
+                r, c = neigh_node  # We draw the newly visited node
 
+                # Swap to (x, y) -> (c, r)
                 rect = plt.Rectangle(
-                    (r - 0.5, c - 0.5),
+                    (c - 0.5, r - 0.5),  # Swapped r and c
                     1, 1,
                     facecolor="orange",
                     alpha=0.5,
@@ -93,13 +97,13 @@ class MazeVisualizer(BaseVisualizer):
                 path_idx = frame - len(self.history)
 
                 if path_idx < len(self.path) - 1:
-
                     r1, c1 = self.path[path_idx]
                     r2, c2 = self.path[path_idx + 1]
 
+                    # FIX 3: Swap to X=[c1, c2], Y=[r1, r2]
                     line, = ax.plot(
-                        [r1, r2],
                         [c1, c2],
+                        [r1, r2],
                         color="royalblue",
                         linewidth=4,
                         zorder=20
