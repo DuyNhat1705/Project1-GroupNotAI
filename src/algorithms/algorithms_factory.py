@@ -1,7 +1,7 @@
 from src.algorithms.classical.a_star import A_Star
 from src.algorithms.classical.bfs import BFS
 
-def get_algorithm(algorithm_name):
+def get_algorithm(algorithm_name,params = None):
     match algorithm_name:
         case "A Star":
             return A_Star(params = {"path": []})
