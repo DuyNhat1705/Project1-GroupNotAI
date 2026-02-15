@@ -1,35 +1,54 @@
-def get_problem(name, **kwargs):
+# src/HandleCLI.py
+import argparse
+
+
+def parse_param_string(param_list):
     """
-    problem string name
+    Chuyển list ['key=value', 'a=1'] thành dict {'key': 'value', 'a': 1}
+    Tự động ép kiểu int/float.
     """
-    #add problems list later: /*...*/ = "..."
-    problems = {
-        # Discrete
+    params = {}
+    if not param_list:
+        return params
 
-        # Continuous
+    for item in param_list:
+        if "=" not in item:
+            continue
+        key, value = item.split("=", 1)
+        
+        # Thử ép kiểu số
+        try:
+            if "." in value:
+                value = float(value)
+            else:
+                value = int(value)
+        except ValueError:
+            pass # Giữ nguyên string nếu không phải số (VD: path="...")
+            
+        params[key] = value
+    return params
+def handleCLI():
+    parser = argparse.ArgumentParser(description="AI Search Algorithm Runner")
 
-    }
+    # Các tham số bắt buộc
+    parser.add_argument("--algo", type=str, required=True, help="Tên thuật toán (VD: ga, de, bfs, astar)")
+    parser.add_argument("--problem", type=str, required=True, help="Tên bài toán (VD: sphere, maze, graph)")
 
-    if name not in problems:
-        raise ValueError(f"Problem '{name}' not found. Available: {list(problems.keys())}")
+    # Các tham số tùy chọn
+    parser.add_argument("--dim", type=int, default=2, help="Số chiều (cho bài toán Continuous)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    
+    # Tham số động cho thuật toán (VD: pop_size=100 F=0.8)
+    parser.add_argument("--params", nargs='*', help="Các tham số thuật toán dạng key=value (VD: pop_size=50 F=0.8 CR=0.9)")
 
-    return problems[name](**kwargs)
+    args = parser.parse_args()
 
+    # 1. Parse Params
+    algo_params = parse_param_string(args.params)
+    print(f"\n[INFO] Run Configuration:")
+    print(f"  Algorithm: {args.algo}")
+    print(f"  Problem  : {args.problem}")
+    print(f"  Dimension: {args.dim}")
+    print(f"  Params   : {algo_params}")
 
-def get_algorithm(name, **kwargs):
-    """
-    algorithm string name.
-    """
-
-    # add problems list later: /*...*/ = "..."
-    algos = {
-        # Classical
-
-        # Nature-Inspired
-
-    }
-
-    if name not in algos:
-        raise ValueError(f"Algorithm '{name}' not found. Available: {list(algos.keys())}")
-
-    return algos[name](params=kwargs)
+    return args, algo_params

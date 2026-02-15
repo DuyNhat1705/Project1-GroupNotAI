@@ -81,4 +81,5 @@ class PSO(BaseAlgorithm):
             logger.history["iteration_best"].append(min(iter_costs) if flag else max(iter_costs))
         
         logger.finish(best_solution=gbest_pos.tolist(), best_fitness=self.calc_fitness(flag, gbest_cost))
-        return gbest_pos, gbest_cost, logger
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": gbest_pos.tolist(), "best_fitness": self.calc_fitness(flag, gbest_cost), "logger": logger}}

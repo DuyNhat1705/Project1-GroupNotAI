@@ -79,7 +79,8 @@ class ACO(BaseAlgorithm):
             logger.history["iteration_best"].append(archive[0][1])
         
         logger.finish(best_solution=best_solution.tolist(), best_fitness=self.calc_fitness(True, best_cost))
-        return best_solution, best_cost, logger
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": best_solution.tolist(), "best_fitness": self.calc_fitness(True, best_cost), "logger": logger}}
     
     def _solve_discrete(self, problem, seed):
         logger = Logger(self.name, run_id=seed)
@@ -87,7 +88,8 @@ class ACO(BaseAlgorithm):
         
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
-            return [], float('inf'), logger
+            return {"time(ms)": logger.meta["runtime"],
+                    "result": {"best_solution": [], "cost": float('inf'), "logger": logger}}
         
         n = problem.dimension
         dist_mat = problem.dist_mat
@@ -139,4 +141,5 @@ class ACO(BaseAlgorithm):
             logger.history["iteration_best"].append(min(costs))
         
         logger.finish(best_solution=best_tour, best_fitness=self.calc_fitness(False, best_cost))
-        return best_tour, best_cost, logger
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": best_tour, "cost": best_cost, "logger": logger}}

@@ -173,5 +173,6 @@ class ArtificialBee(BaseAlgorithm):
 
         # Finish
         logger.finish(best_solution=best_solution, best_fitness=best_cost)
-        return best_solution, best_cost, logger
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": best_solution.tolist(), "best_fitness": self.calc_fitness(flag, best_cost), "logger": logger}}
 

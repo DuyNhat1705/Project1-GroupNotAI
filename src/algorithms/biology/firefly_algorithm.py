@@ -81,4 +81,5 @@ class FireflyAlgorithm(BaseAlgorithm):
             logger.history["iteration_best"].append(float(iter_best))
         
         logger.finish(best_solution=best_position.tolist(), best_fitness=self.calc_fitness(flag, best_cost))
-        return best_position, best_cost, logger
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": best_position.tolist(), "best_fitness": self.calc_fitness(flag, best_cost), "logger": logger}}

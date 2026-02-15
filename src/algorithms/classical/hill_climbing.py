@@ -79,4 +79,5 @@ class HillClimbing(BaseAlgorithm):
 
         # log the solution and best score
         logger.finish(best_solution=cur, best_fitness=cur_fit)
-        return cur, cur_fit, logger
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": cur, "best_fitness": cur_fit, "logger": logger}}
