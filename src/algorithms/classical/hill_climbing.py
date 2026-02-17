@@ -5,12 +5,17 @@ from src.utils.logger import Logger
 
 
 class HillClimbing(BaseAlgorithm):
-    def __init__(self, params={"step": 0.99, "iteration": 600}):
+    def __init__(self, params=None):
         """"
         step: max step size from current position
         iteration: number of iterations
         """
-        super().__init__("Hill Climbing", params)
+        # parameter initialization
+        default_params = {"step": 0.99, "iteration": 600}
+        if params:
+            default_params.update(params)
+
+        super().__init__("Hill Climbing", default_params)
 
     def get_neighbor(self, cur_pos, lower, upper, cont_flag):
 
@@ -47,7 +52,7 @@ class HillClimbing(BaseAlgorithm):
 
         if problem.cont_flag:
             # assign bounds and start with a random position
-            bounds = problem.bounds
+            bounds = np.array(problem.bounds)
             lower_bound = bounds[:, 0]
             upper_bound = bounds[:, 1]
             cur = np.random.uniform(lower_bound, upper_bound, size=problem.dimension)
@@ -64,7 +69,7 @@ class HillClimbing(BaseAlgorithm):
         # log the position if move occurs
         logger.history["explored"] = []
         # Log starting point
-        logger.history["explored"].append((cur, cur_fit))
+        logger.history["explored"].append((cur.copy(), cur_fit))
 
         for ite in range(self.params["iteration"]):
             next_pos = self.get_neighbor(cur, lower_bound, upper_bound, problem.cont_flag)

@@ -1,26 +1,39 @@
+import os
+
 import numpy as np
 from src.problems.base_problem import BaseProblem
 
 class KnapsackProblem(BaseProblem):
-    def __init__(self, name, weights, values, capacity):
-        """
-        Args:
-            weights (list): Weight of each item
-            values (list): Value of each item
-            capacity (int): Max weight knapsack can hold
-        """
+    def __init__(self, name="Knapsack Problem"):
+        self.weights =None
+        self.values = None
+        self.capacity = None
+        self.seed = None
+        self.filepath = os.path.join(BaseProblem.project_root, 'data', 'knapsack.txt')
+        # Load from filepath
+        self.load_from_file(self.filepath)
 
-        if len(weights) != len(values):
-            raise ValueError("Weights and Values must be the same length") #ensure each item has both weight and value
+        # Init BaseProblem params
+        super().__init__(name, dimension=len(self.weights), bounds=[0, 2], cont_flag=False)
 
-        self.weights = np.array(weights)
-        self.values = np.array(values)
-        self.capacity = capacity
+    def load_from_file(self, filename):
+        with open(filename, "r") as file:
+            lines = file.readlines()
+            lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith('#')] # skip comment lines
 
-        # dimension = num of items
-        # bounds = [0, 2] (0 or 1)
-        # cont_flag = False (Discrete)
-        super().__init__(name, dimension=len(weights), bounds=[0, 2], cont_flag=False)
+            if not lines:
+                raise ValueError(f"The file {filename} is empty.")
+
+            self.capacity = float(lines[0]) # assign capacity (max weigth allowed)
+            weights = []
+            values = []
+            for line in lines[1:]: # append weight and value
+                w, v = map(float, line.split())
+                weights.append(w)
+                values.append(v)
+
+            self.weights = np.array(weights)
+            self.values = np.array(values)
 
     def evaluate(self, solution):
         """
@@ -35,7 +48,8 @@ class KnapsackProblem(BaseProblem):
 
         # Constraint Handling
         if total_weight > self.capacity:
-            return 0
+            penalty = total_weight - self.capacity
+            return 1e-5 / penalty
 
         # Return Negative Value for Minimization Algorithms
         return float(total_value)

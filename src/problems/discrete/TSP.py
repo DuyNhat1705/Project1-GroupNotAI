@@ -1,24 +1,67 @@
 import numpy as np
+import math
+import os
 from src.problems.base_problem import BaseProblem
 
-class TSPProblem(BaseProblem):
-    def __init__(self, dist_mat):
-        """
-        Args:
-            dist_mat (np.ndarray): NxN distance matrix
-        """
-        self.dist_mat = dist_mat
-        dim = dist_mat.shape[0] # dimension of matrix = number of nodes
+class TravelSalesmanProblem(BaseProblem):
+    def __init__(self, name="TSP"):
+        self.city_names = []
+        self.coords = None  # coords for visualization
+        self.dist_mat = None
 
-        # Bound 0 to N-1
-        bounds = [(0, dim - 1)] * dim
+        self.filepath = os.path.join(BaseProblem.project_root, 'data', 'city_map.txt')
 
-        super().__init__(name="TSP", dimension=dim, bounds=bounds, cont_flag=False)
+        self.load_from_file(self.filepath)
+        dim = len(self.dist_mat)
+        self.coords = self.generate_circular_layout(dim)
 
+        super().__init__(name=name, dimension=dim, bounds=None, cont_flag=False)
+
+    def load_from_file(self, filepath):
+        with open(filepath, "r") as f:
+            lines = [l.strip() for l in f.readlines() if l.strip() and not l.strip().startswith("#")] #skip comment lines
+
+        # Try convert lines to numbers.
+        # If successful -> Matrix Row. If fail -> City Name.
+        names = []
+        matrix_rows = []
+
+        for line in lines:
+            try:
+                # Try converting to list of floats
+                row = list(map(float, line.split()))
+                # If the row has more than 1 number, assume matrix row
+                if len(row) > 1:
+                    matrix_rows.append(row)
+                else:
+                    pass
+            except ValueError:
+                # Could not convert to numbers -> City Name
+                names.append(line)
+
+        self.dist_mat = np.array(matrix_rows)
+        self.city_names = names
+
+        # Validation
+        if len(self.city_names) != len(self.dist_mat):
+            print(f"[WARNING] Mismatch: {len(self.city_names)} names vs {len(self.dist_mat)} matrix rows.")
+            # Auto-fix names if missing
+            if len(self.city_names) == 0:
+                self.city_names = [f"City_{i}" for i in range(len(self.dist_mat))]
+
+    def generate_circular_layout(self, n, radius=100):
+        """Generate (x, y) coordinates to arrange nodes in circle."""
+        coords = []
+        for i in range(n):
+            angle = 2 * math.pi * i / n
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            coords.append([x, y])
+        return np.array(coords)
 
     def evaluate(self, solution):
         """
-        Calculates total distance of the path.
+        Calculate total distance of the path.
         """
         # Ensure solution is int idx
         path = np.array(solution, dtype=int)

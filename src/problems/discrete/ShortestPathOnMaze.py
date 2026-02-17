@@ -10,7 +10,7 @@ class ShortestPathOnMaze(BaseProblem):
         self.start = None
         self.goal = None
 
-        self.data_path = os.path.join(BaseProblem.project_root, 'data', '8x8_maze.txt')
+        self.data_path = os.path.join(BaseProblem.project_root, 'data', 'maze.txt')
         self.load_from_file(self.data_path)
 
     def load_from_file(self, filename):

@@ -33,7 +33,7 @@ class ContinuousVisualizer(BaseVisualizer):
         # --- SETUP PLOT ---
         fig, ax = plt.subplots(figsize=(6, 5))
         
-        # 1. Vẽ Contour Background
+        # Contour Background
         resolution = 100
         # Lấy bounds từ problem
         min_r = self.problem.min_range
@@ -53,7 +53,7 @@ class ContinuousVisualizer(BaseVisualizer):
         # Vẽ contour
         ax.contourf(X, Y, Z, levels=50, cmap="viridis", alpha=0.7)
 
-        # 2. Vẽ Global Minimum (Ngôi sao đỏ)
+        # 2. Vẽ Global Minimum (red star)
         if hasattr(self.problem, 'global_x') and self.problem.global_x is not None:
             # Chỉ vẽ nếu global_x có độ dài >= 2
             gx = self.problem.global_x
@@ -64,12 +64,23 @@ class ContinuousVisualizer(BaseVisualizer):
                 ax.legend(loc='upper right')
 
         # 3. Scatter Plot cho quần thể (Màu cam)
-        scat = ax.scatter([], [], c="orange", s=30, edgecolors='black')
+        scat = ax.scatter([], [], c="orange", s=30, edgecolors='black', zorder=15)
         title_text = ax.set_title(f"{self.title} - Init")
 
         def update(frame):
             current_pop = self.history[frame]
-            # Chỉ lấy 2 chiều đầu tiên để vẽ
+
+            # 2. Standardize the data format!
+            if isinstance(current_pop, tuple):
+                current_pop = current_pop[0]
+
+            # Convert to numpy array
+            current_pop = np.array(current_pop)
+
+            # If a single 1D point (SA or ABC's current_best), wrap in a 2D array => avoid crash
+            if current_pop.ndim == 1:
+                current_pop = np.expand_dims(current_pop, axis=0)
+
             scat.set_offsets(current_pop[:, :2]) 
             title_text.set_text(f"{self.title} - Gen {frame}/{len(self.history)}")
             return scat, title_text

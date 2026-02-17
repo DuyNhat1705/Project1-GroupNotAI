@@ -1,18 +1,26 @@
+from src.problems.discrete.TSP import TravelSalesmanProblem
+from src.visualization.TSP_viz import TSPVisualizer
 from src.visualization.graph_visualizer import GraphVisualizer
 from src.visualization.maze_visualizer import MazeVisualizer
 from src.visualization.continuous_visualizer import ContinuousVisualizer
+from src.visualization.knapsack_viz import KnapsackVisualizer
 
 def get_visualizer(params):
     problem = params.get("problem")
     result = params.get("result", {})
     
-    # 1. CONTINUOUS PROBLEMS (Sphere, Ackley...)
+    # 1. CONTINUOUS PROBLEMS
     if hasattr(problem, 'cont_flag') and problem.cont_flag:
         best_fit = result.get("best_fitness", None)
         print(f"  -> Done. Best Fitness: {best_fit}")
         # Lấy lịch sử population từ logger
         logger = result.get("logger", None)
-        history = logger.history.get("population", []) if logger else []
+        if logger:
+            history = logger.history.get("population",
+                                         logger.history.get("explored",
+                                                            logger.history.get("current_best", [])))
+        else:
+            history = []
         
         # Tiêu đề
         algo_name = params.get("algorithm", "Unknown Algo")
@@ -45,6 +53,19 @@ def get_visualizer(params):
                 path = result.get("path", [])
                 title = params.get("algorithm") + " Visualization"
                 return MazeVisualizer(problem, history, path, title)
-            
+
+            case "Knapsack Problem":
+                # Extract the array of best solutions over iterations
+                history = result.get("logger").history.get("current_best", [])
+                title = params.get("algorithm") + " Visualization"
+                # We pass 'None' for path since Knapsack doesn't use graph paths
+                return KnapsackVisualizer(problem, history, path=None, title=title)
+
+            case "TSP":
+                logger = result.get("logger")
+                history = logger.history.get("explored", [])
+                title = params.get("algorithm", "Unknown Algo") + " on TSP"
+                return TSPVisualizer(problem, history, path=None, title=title)
+
             case _:
                 raise ValueError(f"Visualization not implemented for {problem_name}")

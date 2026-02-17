@@ -19,7 +19,7 @@ class ShortestPathOnGraph(BaseProblem):
         self.seed = seed
         self.node_coords = {}  # { 'NodeID': (x, y) }
 
-        self.data_path = os.path.join(BaseProblem.project_root, 'data', 'weighted_graph_ex1.txt')
+        self.data_path = os.path.join(BaseProblem.project_root, 'data', 'weighted_graph.txt')
         self.load_from_file(self.data_path)
         
         self.generate_coords(seed) #assign node position for visualization

@@ -6,14 +6,18 @@ from src.utils.logger import Logger
 
 
 class SimulatedAnnealing(BaseAlgorithm):
-    def __init__(self, params={"temperature": 10, "decay": 0.95, "step": 0.1, "iteration": 600}):
+    def __init__(self, params=None):
         """
         temperature: the initial temperature
         decay: decay rate, decide how the temperature decrease
         step: step size from current position
         iteration: number of iterations
         """
-        super().__init__("Simulated Annealing", params)
+        default_params = {"temperature": 10, "decay": 0.95, "step": 0.1, "iteration": 600}
+        if params:
+            default_params.update(params)
+        # Pass the merged dict to BaseAlgorithm
+        super().__init__("Simulated Annealing", default_params)
 
     def get_neighbor(self, cur_pos, lower, upper, cont_flag):
 
@@ -50,7 +54,7 @@ class SimulatedAnnealing(BaseAlgorithm):
 
         if problem.cont_flag:
             # assign bounds and start with a random position
-            bounds = problem.bounds
+            bounds = np.array(problem.bounds)
             lower_bound = bounds[:, 0]
             upper_bound = bounds[:, 1]
             cur = np.random.uniform(lower_bound, upper_bound, size=problem.dimension)
@@ -98,4 +102,15 @@ class SimulatedAnnealing(BaseAlgorithm):
             temp *= self.params["decay"] # decrease temperature by decay factor
 
         logger.finish(best_solution=best, best_fitness=best_fit) # log the best and terminate
-        return best, best_fit, logger
+        #return best, best_fit, logger
+        logger.finish(best_solution=best, best_fitness=best_fit)
+
+        # Return standard dictionary format
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {
+                "best_solution": best,
+                "best_fitness": best_fit,
+                "logger": logger
+            }
+        }
