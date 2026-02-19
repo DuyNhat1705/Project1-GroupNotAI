@@ -1,0 +1,21 @@
+% introduction
+The artificial bee colony (ABC) algorithm is the simulation of the minimalistic foraging model of honey bee in search process for solving real-parameter, non-convex, and non-smooth optimization problems.
+% natural inspiration
+Collective intelligence of honey bee swarms decides the recruitment or abandonment of food sources. To achieve the maximum profit, the bee colony is divided into three roles:  employed forager, onlookers and scouts.
+
+Food sources: While value of a food source depends on manyfactors (such as proximity to the nest, richness, concentration of energy, and the ease of extracting), for the sake of simplicity, a food source will be represented with a single quantity called \textit{profitability}.
+
+Employed bee: Each food source is associated with an employed bee and each employed bee tries to detect a new food source in the neighbourhood of its current food source. The detected food source is memorized when the nectar amount of the detected food source is higher than the nectar amount of current food source. After completion of the search process, employed bees share their information concerning the nectar amount of food sources with onlooker bees via waggle dance in the dance area, with a probability proportional to the profitability of the food source (delivered by the duration of the dance).
+
+Onlooker bee: An onlooker bee evaluates the information gained from the employed bees and tries to find a new food source in the neighbourhood of the selected food based on this evaluated information. Thus, the tendency of onlooker bees is to search around the food sources with high nectar amount; in this way, more qualified food sources can be chosen for exploitation.
+
+Scout bee: The number of scout bees is not fixed in the colony. A scout bee is produced according to the situation of a food source. When an abandoned food source is detected, its employed becomes a scout bee, and then randomly searches a new one in space. After that, the scout bee returns to employed bee again.
+
+We can infer from bee behaviour the self organization properties, which then will apply in construction of ABC:
+i) Positive feedback: As the nectar amount of food sources increases, the number of onlookers visiting them increases, too.
+ii) Negative feedback: The exploitation process of poor food sources is stopped by bees.
+iii) Fluctuations: The scouts carry out a random search process for discovering new food sources.
+iv) Multiple interactions: Bees share their information about food sources with their nest mates on the dance area. 
+
+
+
