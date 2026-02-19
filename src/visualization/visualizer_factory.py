@@ -3,7 +3,7 @@ from src.visualization.TSP_viz import TSPVisualizer
 from src.visualization.graph_visualizer import GraphVisualizer
 from src.visualization.maze_visualizer import MazeVisualizer
 from src.visualization.continuous_visualizer import ContinuousVisualizer
-from src.visualization.knapsack_viz import KnapsackVisualizer
+# from src.visualization.knapsack_viz import KnapsackVisualizer
 
 def get_visualizer(params):
     problem = params.get("problem")

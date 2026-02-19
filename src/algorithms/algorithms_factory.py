@@ -6,6 +6,7 @@ from src.algorithms.evolution.differential_evolution import DifferentialEvolutio
 from src.algorithms.classical.hill_climbing import HillClimbing
 from src.algorithms.physics.simulated_annealing import SimulatedAnnealing
 from src.algorithms.biology.artificial_bee import ArtificialBee
+from src.algorithms.biology.cuckoo_search import CS
 from src.algorithms.human.tlbo import TLBO
 
 def get_algorithm(name, **kwargs):
@@ -44,7 +45,10 @@ def get_algorithm(name, **kwargs):
         "abc": ArtificialBee,
 
         "tlbo": TLBO,
-        "teachinglearningbasedoptimization": TLBO
+        "teachinglearningbasedoptimization": TLBO,
+
+        "cs": CS,
+        "cuckoosearch": CS
     }
 
     if name_key not in algos:
