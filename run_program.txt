@@ -1,6 +1,7 @@
 Chạy file main: 
 python main.py --algo ga --problem sphere --params pop_size=500
-python main.py --algo tlbo --problem sphere --params pop_size=500 lb=-5 ub=5 num_iters=90
+python main.py --algo tlbo --problem sphere --params pop_size=50 lb=-5 ub=5 num_iters=90
+python main.py --algo cs --problem sphere --params pop_size=50 lb=-5 ub=5 num_iters=100
 python main.py --algo BFS --problem graph
 python main.py --algo DFS --problem graph
 python main.py --algo astar --problem maze

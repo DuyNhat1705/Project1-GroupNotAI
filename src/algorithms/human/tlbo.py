@@ -22,13 +22,13 @@ class TLBO(BaseAlgorithm):
         population = np.random.uniform(lb, ub, size=(population_size, num_variables))
         fitness = np.array([problem.evaluate(ind) for ind in population])
         logger.log("population", population.copy())
-        logger.log("best_fitness", np.max(fitness))
+        logger.log("best_fitness", np.min(fitness))
 
         # Find the best solution for the 1st teacher phase
         for iteration in range(num_iterations):
             for student in range(population_size):
                 #Teacher phase
-                best_idx = np.argmax(fitness)
+                best_idx = np.argmin(fitness)
                 X_best = population[best_idx]
                 best_fitness = fitness[best_idx]
 
@@ -39,7 +39,7 @@ class TLBO(BaseAlgorithm):
                 X_new = population[student] + r*(X_best - Tf*X_mean)
                 X_new = np.clip(X_new, lb, ub)
                 new_fitness = problem.evaluate(X_new)
-                if new_fitness > fitness[student]:
+                if new_fitness < fitness[student]:
                     population[student] = X_new
                     fitness[student] = new_fitness
                 
@@ -52,20 +52,20 @@ class TLBO(BaseAlgorithm):
                 partner_fitness = fitness[partner_idx]
                 r = np.random.rand(2)
 
-                if fitness[student] > partner_fitness:
+                if fitness[student] < partner_fitness:
                     X_new = population[student] + r*(population[student]-X_partner)
                 else:
                     X_new = population[student] - r*(population[student]-X_partner)
 
                 X_new = np.clip(X_new, lb, ub)
                 new_fitness = problem.evaluate(X_new)
-                if new_fitness > fitness[student]:
+                if new_fitness < fitness[student]:
                     population[student] = X_new
                     fitness[student] = new_fitness
-            logger.log("best_fitness", np.max(fitness))
+            logger.log("best_fitness", np.min(fitness))
             logger.log("population", population.copy())
 
-        best_idx = np.argmax(fitness)
+        best_idx = np.argmin(fitness)
         best_solution = population[best_idx]
         best_fitness = fitness[best_idx]
         logger.finish(best_solution, best_fitness)
