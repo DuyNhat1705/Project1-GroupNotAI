@@ -53,10 +53,8 @@ class ShortestPathOnMaze(BaseProblem):
         return neighbors
 
     def evaluate(self, path):
-        """
-        Required by BFS/DFS to score the final path.
-        """
         if not path:
-            return float('inf')
-        # Cost = the number of steps taken
+            return float("inf")
+        if path[-1] != self.goal:
+            return float("inf")
         return len(path) - 1
