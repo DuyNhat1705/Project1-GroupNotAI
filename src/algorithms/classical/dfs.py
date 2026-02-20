@@ -32,7 +32,7 @@ class DFS(BaseAlgorithm):
                 logger.finish(best_solution=path, best_fitness=fitness)
                 return {
                     "time(ms)": logger.meta["runtime"],
-                    "result": {"path": path, "cost": cost, "logger": logger}
+                    "result": {"path": path, "cost": cost, "nodes_expanded": len(logger.history["visited_edges"]), "logger": logger}
                 }
 
             neighbors = problem.get_neighbors(current)
@@ -48,7 +48,7 @@ class DFS(BaseAlgorithm):
         logger.finish(best_solution=[], best_fitness=float('inf'))
         return {
             "time(ms)": logger.meta["runtime"],
-            "result": {"path": [], "cost": float('inf'), "logger": logger}
+            "result": {"path": [], "cost": float('inf'), "nodes_expanded": len(logger.history["visited_edges"]), "logger": logger}
         }
 
     def reconstruct_path(self, previous, current):

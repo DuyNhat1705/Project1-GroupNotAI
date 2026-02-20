@@ -87,8 +87,15 @@ class A_Star(BaseAlgorithm):
 
         logger.finish(best_solution=self.params["path"], best_fitness=final_cost)
 
-        return {"time(ms)": logger.meta["runtime"],
-                "result": {"cost": final_cost, "path": self.params["path"], "logger": logger}}
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {
+                "cost": final_cost,
+                "path": self.params["path"],
+                "nodes_expanded": len(logger.history["visited_edges"]),  # <-- DISCRETE METRIC
+                "logger": logger
+            }
+        }
 
     # Reconstruct optimal path
     def reconstruct_path(self, came_from, start, goal):

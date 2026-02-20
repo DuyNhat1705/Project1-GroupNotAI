@@ -1,5 +1,7 @@
 from src.algorithms.base_algorithm import BaseAlgorithm
 from src.utils.logger import Logger
+import numpy as np
+
 
 
 class BFS(BaseAlgorithm):
@@ -7,8 +9,62 @@ class BFS(BaseAlgorithm):
 
         super().__init__("Breadth-First Search", params if params else {})
 
-
     def solve(self, problem, seed=None):
+        # Route the problem to the correct solver logic!
+        if problem.getName() == "Knapsack Problem":
+            return self._solve_knapsack(problem, seed)
+        else:
+            return self._solve_pathfinding(problem, seed)
+
+    def _solve_knapsack(self, problem, seed):
+        logger = Logger(self.name, run_id=seed)
+        logger.history["current_best"] = []
+
+        # (item_index, current_weight, current_value, selection_tuple)
+        start_state = (0, 0.0, 0.0, ())
+        queue = [start_state]
+
+        best_value = -1
+        best_solution = []
+        nodes_expanded = 0
+
+        while len(queue) > 0:
+            current = queue.pop(0)  # FIFO for BFS
+            idx, current_weight, current_value, path = current
+            nodes_expanded += 1
+
+            # If leaf of the decision tree reached
+            if idx == problem.dimension:
+                if current_value > best_value:
+                    best_value = current_value
+                    best_solution = list(path)
+                    # Log the 1D numpy array for later used by KnapsackViz
+                    logger.history["current_best"].append(np.array(best_solution))
+                continue
+
+            # Branch 1: Exclude the current item (0)
+            queue.append((idx + 1, current_weight, current_value, path + (0,)))
+
+            # Branch 2: Include the current item (1)
+            # Only branch if avaible capacity
+            if current_weight + problem.weights[idx] <= problem.capacity:
+                queue.append(
+                    (idx + 1, current_weight + problem.weights[idx], current_value + problem.values[idx], path + (1,)))
+
+        # Evaluate final formulation
+        final_solution = np.array(best_solution)
+        cost = problem.evaluate(final_solution)
+
+        logger.log("cost", cost)
+        logger.finish(best_solution=final_solution, best_fitness=best_value)
+
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {"path": best_solution, "cost": cost, "best_fitness": best_value,
+                       "nodes_expanded": nodes_expanded, "logger": logger}
+        }
+
+    def _solve_pathfinding(self, problem, seed=None):
 
         start = problem.start
         goal = problem.goal
@@ -33,7 +89,7 @@ class BFS(BaseAlgorithm):
                 logger.log("cost", cost)
                 logger.finish(best_solution=path, best_fitness=fitness)
                 return {"time(ms)":logger.meta["runtime"],
-                        "result":{"path": path, "cost": cost, "logger": logger}}
+                        "result":{"path": path, "cost": cost, "nodes_expanded": len(logger.history["visited_edges"]), "logger": logger}}
 
             neighbors = problem.get_neighbors(current)
 
@@ -49,7 +105,8 @@ class BFS(BaseAlgorithm):
         # No path found
         logger.finish(best_solution=[], best_fitness=float('inf'))
         return {"time(ms)":logger.meta["runtime"],
-                "result": {"path": [], "cost": float('inf'), "logger": logger}}
+                "result": {"path": [], "cost": float('inf'),"nodes_expanded": len(logger.history["visited_edges"]), "logger": logger}}
+
 
     def reconstruct_path(self, previous, current):
         complete_path = [current]

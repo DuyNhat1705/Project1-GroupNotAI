@@ -9,3 +9,6 @@ python main.py --algo sa --problem tsp
 python main.py --algo sa --problem sphere
 python main.py --algo hc --problem tsp
 python main.py --algo hc --problem sphere
+
+python benchmark.py --problem maze
+python benchmark.py --problem sphere
