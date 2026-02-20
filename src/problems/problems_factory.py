@@ -4,7 +4,6 @@ from src.problems.continuous.continuous import Sphere, Rosenbrock, Ackley, Griew
 from src.problems.discrete.TSP import TravelSalesmanProblem
 from src.problems.discrete.knapsack import KnapsackProblem
 
-
 def get_problem(name, **kwargs):
     """
     Factory for Problems.

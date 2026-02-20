@@ -3,6 +3,7 @@ from src.visualization.TSP_viz import TSPVisualizer
 from src.visualization.graph_visualizer import GraphVisualizer
 from src.visualization.maze_visualizer import MazeVisualizer
 from src.visualization.continuous_visualizer import ContinuousVisualizer
+from src.visualization.ga_maze_visualizer import GAMazeVisualizer
 # from src.visualization.knapsack_viz import KnapsackVisualizer
 
 def get_visualizer(params):
@@ -17,8 +18,8 @@ def get_visualizer(params):
         logger = result.get("logger", None)
         if logger:
             history = logger.history.get("population",
-                                         logger.history.get("explored",
-                                                            logger.history.get("current_best", [])))
+                      logger.history.get("explored",
+                    logger.history.get("current_best", [])))
         else:
             history = []
         
@@ -50,8 +51,12 @@ def get_visualizer(params):
                 
             case "ShortestPathOnMaze":
                 history = result.get("logger", None).history.get("visited_edges", [])
-                path = result.get("path", [])
+                path = result.get("path", []) 
                 title = params.get("algorithm") + " Visualization"
+                            
+                if "Genetic" in params.get("algorithm", ""):
+                    return GAMazeVisualizer(problem, history, path, title)
+                            
                 return MazeVisualizer(problem, history, path, title)
 
             case "Knapsack Problem":
@@ -59,7 +64,7 @@ def get_visualizer(params):
                 history = result.get("logger").history.get("current_best", [])
                 title = params.get("algorithm") + " Visualization"
                 # We pass 'None' for path since Knapsack doesn't use graph paths
-                return KnapsackVisualizer(problem, history, path=None, title=title)
+                return TSPVisualizer(problem, history, path=None, title=title)                                          # Nhớ sửa lại t đổi tên để khỏi lỗi
 
             case "TSP":
                 logger = result.get("logger")
@@ -69,3 +74,4 @@ def get_visualizer(params):
 
             case _:
                 raise ValueError(f"Visualization not implemented for {problem_name}")
+            

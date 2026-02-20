@@ -1,6 +1,7 @@
 from src.algorithms.base_algorithm import BaseAlgorithm
 from src.utils.logger import Logger
 
+
 class DFS(BaseAlgorithm):
     def __init__(self, params=None):
         super().__init__("Depth-First Search", params if params else {})

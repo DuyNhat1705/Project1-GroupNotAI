@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import os
+
 class BaseProblem(ABC):
     """
     Inherit ABC
