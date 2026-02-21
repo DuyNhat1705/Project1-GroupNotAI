@@ -3,6 +3,7 @@ from src.problems.discrete.ShortestPathOnMaze import ShortestPathOnMaze
 from src.problems.continuous.continuous import Sphere, Rosenbrock, Ackley, Griewank, Rastrigin, Michalewicz
 from src.problems.discrete.TSP import TravelSalesmanProblem
 from src.problems.discrete.knapsack import KnapsackProblem
+from src.problems.discrete.GraphColoring import GraphColoring
 
 def get_problem(name, **kwargs):
     """
@@ -24,6 +25,7 @@ def get_problem(name, **kwargs):
 
         "tsp": TravelSalesmanProblem,
 
+        "graphcoloring": GraphColoring,
 
         # --- Continuous ---
         "sphere": Sphere,

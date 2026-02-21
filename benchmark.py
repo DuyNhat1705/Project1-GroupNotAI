@@ -11,6 +11,13 @@ from src.algorithms.classical.bfs import BFS
 from src.algorithms.classical.a_star import A_Star
 from src.problems.problems_factory import get_problem
 from src.algorithms.biology.artificial_bee import ArtificialBee
+from src.algorithms.biology.ant_colony_optimization import ACO
+from src.algorithms.biology.particle_swarm import PSO
+from src.algorithms.biology.cuckoo_search import CS
+from src.algorithms.biology.firefly_algorithm import FireflyAlgorithm
+from src.algorithms.evolution.differential_evolution import DifferentialEvolution
+from src.algorithms.evolution.genetic_algorithm import GeneticAlgorithm
+from src.algorithms.human.tlbo import TLBO
 from src.algorithms.physics.simulated_annealing import SimulatedAnnealing
 from src.algorithms.classical.hill_climbing import HillClimbing
 
@@ -18,20 +25,20 @@ from src.algorithms.classical.hill_climbing import HillClimbing
 # ---  PROBLEM-TO-ALGORITHM MAP ---
 # Defines which algorithms can attempt which problems
 COMPATIBILITY = {
-    "continuous": ["ABC", "SA", "HC"],
+    "continuous": ["ABC", "SA", "HC", "PSO", "CS", "FA"],
     "tsp": ["SA", "HC"],
     "maze": ["A*", "BFS", "DFS"],
     "knapsack": ["ABC", "SA", "BFS"]
 }
 
 ALGO_CLASSES = {
-    "ABC": ArtificialBee, "SA": SimulatedAnnealing, "HC": HillClimbing,
+    "ABC": ArtificialBee, "SA": SimulatedAnnealing, "HC": HillClimbing, "PSO": PSO, "CS": CS, "FA": FireflyAlgorithm,
     "A*": A_Star, "BFS": BFS, "DFS": DFS
 }
 
 # Define known optimums for Error calculations (Continuous)
 KNOWN_OPTIMUMS = {
-    "sphere": 0.0, "griewank": 0.0, "rosenbrock": 0.0
+    "sphere": 0.0, "griewank": 0.0, "rosenbrock": 0.0, "ackley": 0.0, "michalewicz": -1.80, "rastrigin": 0.0
 }
 
 def timeout_handler(flag):
