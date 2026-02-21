@@ -104,17 +104,17 @@ def run_benchmark(prob_name, runs=30):
             start_time = time.perf_counter()
 
             try:
-                timer.start()  # Start the countdown!
+                timer.start()  # Start the countdown
 
                 raw_output = algo.solve(problem, seed=i)
 
-                timer.cancel()  # If it finishes in time, stop the bomb!
+                timer.cancel()  # If it finishes in time, stop counting
 
                 end_time = time.perf_counter()
                 _, peak_mem = tracemalloc.get_traced_memory()
                 tracemalloc.stop()
 
-                # Log the results normally
+                # Log the results
                 res = raw_output["result"]
                 final_fit = res.get("best_fitness", res.get("cost", 0))
 
