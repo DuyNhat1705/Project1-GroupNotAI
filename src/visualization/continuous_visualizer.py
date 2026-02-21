@@ -29,61 +29,83 @@ class ContinuousVisualizer(BaseVisualizer):
             return
 
         print(f"Visualization: Generating Animation for {self.title}...")
-        
+
         # --- SETUP PLOT ---
         fig, ax = plt.subplots(figsize=(6, 5))
-        
+
         # Contour Background
         resolution = 100
-        # Lấy bounds từ problem
         min_r = self.problem.min_range
         max_r = self.problem.max_range
-        
+
         x = np.linspace(min_r, max_r, resolution)
         y = np.linspace(min_r, max_r, resolution)
         X, Y = np.meshgrid(x, y)
         Z = np.zeros_like(X)
 
-        # Tính giá trị Z cho contour
-        # Lưu ý: problem.evaluate của hệ thống mới nhận vector 1D
+        # Calculate Z values for contour
         for i in range(resolution):
             for j in range(resolution):
                 Z[i, j] = self.problem.evaluate(np.array([X[i, j], Y[i, j]]))
 
-        # Vẽ contour
+        # REVERTED: Back to the original linear scale for the contour map
         ax.contourf(X, Y, Z, levels=50, cmap="viridis", alpha=0.7)
 
-        # 2. Vẽ Global Minimum (red star)
+        # Vẽ Global Minimum (red star)
         if hasattr(self.problem, 'global_x') and self.problem.global_x is not None:
-            # Chỉ vẽ nếu global_x có độ dài >= 2
             gx = self.problem.global_x
             if len(gx) >= 2:
-                ax.scatter(gx[0], gx[1], 
-                           c='red', marker='*', s=200, edgecolors='white', 
-                           label='Global Min', zorder=10)
-                ax.legend(loc='upper right')
+                ax.scatter(gx[0], gx[1],
+                           c='red', marker='*', s=250, edgecolors='white',
+                           label='True Minimum', zorder=10)
 
-        # 3. Scatter Plot cho quần thể (Màu cam)
-        scat = ax.scatter([], [], c="orange", s=30, edgecolors='black', zorder=15)
+        # Marker for the Swarm, and a distinct Diamond for the Algo's Global Best
+        scat = ax.scatter([], [], c="orange", s=30, edgecolors='black', zorder=15, label="Swarm")
+        algo_best_scat = ax.scatter([], [], c="lime", marker="D", s=100, edgecolors='black', zorder=20,
+                                    label="Algo Best So Far")
+
+        ax.legend(loc='upper right')
         title_text = ax.set_title(f"{self.title} - Init")
+
+        # Pre-calculate the Algorithm's "Global Best So Far" for every single frame.
+        best_so_far_points = []
+        global_best_cost = float('inf')
+        global_best_pt = None
+
+        for pop in self.history:
+            if isinstance(pop, tuple): pop = pop[0]
+            pop = np.array(pop)
+            if pop.ndim == 1: pop = np.expand_dims(pop, axis=0)
+
+            # Evaluate every point to find the historical best
+            for pt in pop:
+                c = self.problem.evaluate(pt)
+                if c < global_best_cost:
+                    global_best_cost = c
+                    global_best_pt = pt.copy()
+            best_so_far_points.append(global_best_pt)
 
         def update(frame):
             current_pop = self.history[frame]
 
-            # 2. Standardize the data format!
             if isinstance(current_pop, tuple):
                 current_pop = current_pop[0]
 
-            # Convert to numpy array
             current_pop = np.array(current_pop)
-
-            # If a single 1D point (SA or ABC's current_best), wrap in a 2D array => avoid crash
             if current_pop.ndim == 1:
                 current_pop = np.expand_dims(current_pop, axis=0)
 
-            scat.set_offsets(current_pop[:, :2]) 
-            title_text.set_text(f"{self.title} - Gen {frame}/{len(self.history)}")
-            return scat, title_text
+            # 1. Draw the whole swarm
+            scat.set_offsets(current_pop[:, :2])
+
+            # 2. Draw the Algorithm's Global Best Found So Far
+            best_pt = best_so_far_points[frame]
+            algo_best_scat.set_offsets([best_pt[:2]])
+
+            # 3. Display 1-based indexing so it ends perfectly at Gen 400/400
+            title_text.set_text(f"{self.title} - Gen {frame + 1}/{len(self.history)}")
+
+            return scat, algo_best_scat, title_text
 
         # --- EXPORT VIDEO ---
         ani = animation.FuncAnimation(
@@ -94,22 +116,21 @@ class ContinuousVisualizer(BaseVisualizer):
         )
 
         os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
-        
+
         try:
             print(f"Saving video to {self.save_path} ...")
             writer = animation.FFMpegWriter(fps=15, metadata=dict(artist='AI_Solver'), bitrate=1800)
             ani.save(self.save_path, writer=writer)
             print("Video saved successfully.")
         except Exception as e:
-            print(f"Error saving MP4 (Check FFmpeg): {e}")
+            print(f"Error saving MP4: {e}")
             try:
-                # Fallback GIF
                 gif_path = self.save_path.replace(".mp4", ".gif")
                 ani.save(gif_path, writer="pillow", fps=15)
                 print(f"Saved as GIF instead: {gif_path}")
             except:
                 pass
-        
+
         plt.close()
 
     def analyze_performance(self):

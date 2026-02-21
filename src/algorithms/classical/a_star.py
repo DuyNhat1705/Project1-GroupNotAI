@@ -14,7 +14,7 @@ class A_Star(BaseAlgorithm):
     # Metaheuristic function
     def euclidean_distance(self, a, b):
         # Cast to array to prevent tuple subtraction crash
-        return np.linalg.norm(np.array(a) - np.array(b))
+        return np.linalg.norm(np.array(a) - np.array(b)) # linear algebra norm
 
     # A* algorithm
     def solve(self, problem, seed=None):
@@ -23,7 +23,7 @@ class A_Star(BaseAlgorithm):
         start = tuple(problem.start)
         goal = tuple(problem.goal)
         maze = problem.maze
-        x, y = maze.shape
+        x, y = maze.shape # x = num_rows, y = num_cols
 
         move = np.array([[0, 1], [1, 0], [0, -1], [-1, 0]])
 
