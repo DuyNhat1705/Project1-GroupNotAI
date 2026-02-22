@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from src.visualization.base_visualizer import BaseVisualizer
 
-
 class TSPVisualizer(BaseVisualizer):
     def __init__(self, problem, history, path=None, title="TSP Visualization"):
         super().__init__(problem, history, path, title)

@@ -3,7 +3,6 @@ from src.visualization.TSP_viz import TSPVisualizer
 from src.visualization.graph_visualizer import GraphVisualizer
 from src.visualization.maze_visualizer import MazeVisualizer
 from src.visualization.continuous_visualizer import ContinuousVisualizer
-from src.visualization.ga_maze_visualizer import GAMazeVisualizer
 # from src.visualization.knapsack_viz import KnapsackVisualizer
 
 def get_visualizer(params):
@@ -50,15 +49,12 @@ def get_visualizer(params):
                 return GraphVisualizer(problem, history, path, title)
                 
             case "ShortestPathOnMaze":
-                history = result.get("logger", None).history.get("visited_edges", [])
-                path = result.get("path", []) 
+                logger = result.get("logger")
+                history = logger.history.get("visited_edges", [])
+                path = result.get("path", [])
                 title = params.get("algorithm") + " Visualization"
-                            
-                if "Genetic" in params.get("algorithm", ""):
-                    return GAMazeVisualizer(problem, history, path, title)
-                            
                 return MazeVisualizer(problem, history, path, title)
-
+            
             case "Knapsack Problem":
                 # Extract the array of best solutions over iterations
                 history = result.get("logger").history.get("current_best", [])
