@@ -14,7 +14,7 @@ class A_Star(BaseAlgorithm):
     # Metaheuristic function
     def euclidean_distance(self, a, b):
         # Cast to array to prevent tuple subtraction crash
-        return np.linalg.norm(np.array(a) - np.array(b))
+        return np.linalg.norm(np.array(a) - np.array(b)) # linear algebra norm
 
     # A* algorithm
     def solve(self, problem, seed=None):
@@ -23,7 +23,7 @@ class A_Star(BaseAlgorithm):
         start = tuple(problem.start)
         goal = tuple(problem.goal)
         maze = problem.maze
-        x, y = maze.shape
+        x, y = maze.shape # x = num_rows, y = num_cols
 
         move = np.array([[0, 1], [1, 0], [0, -1], [-1, 0]])
 
@@ -87,8 +87,15 @@ class A_Star(BaseAlgorithm):
 
         logger.finish(best_solution=self.params["path"], best_fitness=final_cost)
 
-        return {"time(ms)": logger.meta["runtime"],
-                "result": {"cost": final_cost, "path": self.params["path"], "logger": logger}}
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {
+                "cost": final_cost,
+                "path": self.params["path"],
+                "nodes_expanded": len(logger.history["visited_edges"]),  # <-- DISCRETE METRIC
+                "logger": logger
+            }
+        }
 
     # Reconstruct optimal path
     def reconstruct_path(self, came_from, start, goal):

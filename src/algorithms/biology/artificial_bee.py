@@ -98,10 +98,10 @@ class ArtificialBee(BaseAlgorithm):
 
         # Track Global Best
         if flag:
-            # Continuous: Minimization (Find Smallest Cost)
+            # Continuous: Minimization (Smallest Cost)
             best_idx = np.argmin(cost_arr)
         else:
-            # Discrete: Maximization (Find Largest Value)
+            # Discrete: Maximization (Largest Value)
             best_idx = np.argmax(cost_arr)
 
         best_solution = food_source_arr[best_idx].copy()

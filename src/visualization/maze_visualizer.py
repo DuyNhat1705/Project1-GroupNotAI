@@ -28,7 +28,7 @@ class MazeVisualizer(BaseVisualizer):
 
         # Draw Maze
         cmap = ListedColormap(["white", "dimgray"])
-        ax.imshow(maze, cmap=cmap, origin="upper")
+        ax.imshow(maze, cmap=cmap, origin="upper") # y-axis upside down
         ax.set_aspect("equal")
 
         ax.set_xlim(-0.5, cols - 0.5)

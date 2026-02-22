@@ -1,9 +1,9 @@
-from src.problems.discrete.TSP import TravelSalesmanProblem
 from src.visualization.TSP_viz import TSPVisualizer
 from src.visualization.graph_visualizer import GraphVisualizer
 from src.visualization.maze_visualizer import MazeVisualizer
 from src.visualization.continuous_visualizer import ContinuousVisualizer
-# from src.visualization.knapsack_viz import KnapsackVisualizer
+from src.visualization.knapsack_viz import KnapsackVisualizer
+from src.visualization.graph_color_viz import GraphColoringVisualizer
 
 def get_visualizer(params):
     problem = params.get("problem")
@@ -59,14 +59,21 @@ def get_visualizer(params):
                 # Extract the array of best solutions over iterations
                 history = result.get("logger").history.get("current_best", [])
                 title = params.get("algorithm") + " Visualization"
-                # We pass 'None' for path since Knapsack doesn't use graph paths
-                return TSPVisualizer(problem, history, path=None, title=title)                                          # Nhớ sửa lại t đổi tên để khỏi lỗi
+                # pass 'None' for path
+                return KnapsackVisualizer(problem, history, path=None, title=title)                                          # Nhớ sửa lại t đổi tên để khỏi lỗi
 
             case "TSP":
                 logger = result.get("logger")
                 history = logger.history.get("explored", [])
                 title = params.get("algorithm", "Unknown Algo") + " on TSP"
                 return TSPVisualizer(problem, history, path=None, title=title)
+
+            case "Graph Coloring":
+                logger = result.get("logger")
+                history = result.get("logger").history.get("current_best", [])
+                title = params.get("algorithm") + " Visualization"
+                # We pass 'None' for path
+                return GraphColoringVisualizer(problem, history, path=None, title=title)
 
             case _:
                 raise ValueError(f"Visualization not implemented for {problem_name}")

@@ -10,3 +10,11 @@ python main.py --algo sa --problem tsp
 python main.py --algo sa --problem sphere
 python main.py --algo hc --problem tsp
 python main.py --algo hc --problem sphere
+python main.py --algo abc --problem griewank
+python main.py --algo abc --problem michalewicz
+python main.py --algo abc --problem ackley
+python main.py --algo abc --problem rastrigin
+python main.py --algo abc --problem rosenbrock
+
+python benchmark.py --problem maze
+python benchmark.py --problem sphere
