@@ -81,9 +81,17 @@ class ContinuousVisualizer(BaseVisualizer):
 
         if best_hist:
             ax_conv.set_xlim(0, len(best_hist))
-            ymin, ymax = min(best_hist), max(best_hist)
+            
+            ymin = min(best_hist)
+            ymax = max(best_hist)
+            
+            if avg_hist:
+                ymin = min(ymin, min(avg_hist))
+                ymax = max(ymax, max(avg_hist))
+                
             if ymin == ymax:
                 ymax += 1e-6
+                
             ax_conv.set_ylim(ymin * 0.95, ymax * 1.05)
 
         # ===== UPDATE =====

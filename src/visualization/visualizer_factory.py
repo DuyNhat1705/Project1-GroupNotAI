@@ -13,26 +13,26 @@ def get_visualizer(params):
     if hasattr(problem, 'cont_flag') and problem.cont_flag:
         best_fit = result.get("best_fitness", None)
         print(f"  -> Done. Best Fitness: {best_fit}")
-        # Lấy lịch sử population từ logger
+        
         logger = result.get("logger", None)
         if logger:
             history = logger.history.get("population",
                       logger.history.get("explored",
-                    logger.history.get("current_best", [])))
+                      logger.history.get("current_best", [])))
         else:
             history = []
         
-        # Tiêu đề
         algo_name = params.get("algorithm", "Unknown Algo")
         title = f"{algo_name} on {problem.getName()}"
         
-        # Lấy dữ liệu Metrics (cho Convergence Plot)
-        metrics = {
-            "best_fit": result.get("best_hist", []),
-            "avg_fit": result.get("avg_hist", [])
-        }
+        if logger:
+            metrics = {
+                "best_fitness": logger.history.get("best_fitness", []),
+                "avg_fitness": logger.history.get("avg_fitness", [])
+            }
+        else:
+            metrics = {}
         
-        # Lấy dữ liệu Grid Search (cho 3 biểu đồ heatmap)
         grid_data = result.get("grid_data", None)
 
         return ContinuousVisualizer(problem, history, title, metrics, grid_data)
@@ -56,11 +56,9 @@ def get_visualizer(params):
                 return MazeVisualizer(problem, history, path, title)
             
             case "Knapsack Problem":
-                # Extract the array of best solutions over iterations
                 history = result.get("logger").history.get("current_best", [])
                 title = params.get("algorithm") + " Visualization"
-                # pass 'None' for path
-                return KnapsackVisualizer(problem, history, path=None, title=title)                                          # Nhớ sửa lại t đổi tên để khỏi lỗi
+                return KnapsackVisualizer(problem, history, path=None, title=title)
 
             case "TSP":
                 logger = result.get("logger")
@@ -72,9 +70,7 @@ def get_visualizer(params):
                 logger = result.get("logger")
                 history = result.get("logger").history.get("current_best", [])
                 title = params.get("algorithm") + " Visualization"
-                # We pass 'None' for path
                 return GraphColoringVisualizer(problem, history, path=None, title=title)
 
             case _:
                 raise ValueError(f"Visualization not implemented for {problem_name}")
-            
