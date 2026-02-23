@@ -39,6 +39,7 @@ class ContinuousVisualizer(BaseVisualizer):
         ax_conv = fig.add_subplot(gs[1, 0])
         ax_text = fig.add_subplot(gs[1, 1])
         ax_text.axis("off")
+        fig.suptitle(self.title, fontsize=16, weight="bold")
 
         # ===== FUNCTION LANDSCAPE =====
         res = 80
@@ -53,7 +54,7 @@ class ContinuousVisualizer(BaseVisualizer):
                 Z[i, j] = self.problem.evaluate(np.array([X[i, j], Y[i, j]]))
 
         # ===== STATIC PLOTS =====
-        ax3d.plot_surface(X, Y, Z, cmap="viridis", alpha=0.85)
+        ax3d.plot_surface(X, Y, Z, cmap="viridis", alpha=0.35, linewidth=0, antialiased=True)
         ax3d.set_title("3D Objective Surface")
 
         ax2d.contourf(X, Y, Z, levels=40, cmap="viridis", alpha=0.8)
@@ -61,11 +62,20 @@ class ContinuousVisualizer(BaseVisualizer):
 
         if hasattr(self.problem, "global_x"):
             gx = self.problem.global_x
-            ax2d.scatter(gx[0], gx[1], c="red", marker="*", s=180)
+            ax2d.scatter(gx[0], gx[1], c="red",edgecolors='white', marker="*", s=200)
 
         scat = ax2d.scatter([], [], c="orange", s=35, edgecolors="black")
-        best_dot_3d, = ax3d.plot([], [], [], "r*", markersize=12)
+        scat3d = ax3d.scatter([], [], [], c="orange", s=30, edgecolors="black", label="Swarm")
+        best_dot_3d, = ax3d.plot([], [], [], "r*", markersize=12, label="Global Minimum")
+        if hasattr(self.problem, "global_x"):
+            gx = self.problem.global_x
+            gz = self.problem.evaluate(gx)  # hoặc evaluate
 
+            best_dot_3d.set_data([gx[0]], [gx[1]])
+            best_dot_3d.set_3d_properties([gz])
+
+        ax2d.legend(["Global Minimum", "Swarm"], loc="upper right")
+        ax3d.legend()
         # ===== CONVERGENCE =====
         best_hist = self.metrics.get("best_fitness", [])
         avg_hist  = self.metrics.get("avg_fitness", [])
@@ -110,7 +120,9 @@ class ContinuousVisualizer(BaseVisualizer):
             idx = np.argmin(fitness)
             best = pop[idx]
             bz = fitness[idx]
+            z_vals = fitness
 
+            scat3d._offsets3d = (pop[:, 0], pop[:, 1], z_vals)
             best_dot_3d.set_data([best[0]], [best[1]])
             best_dot_3d.set_3d_properties([bz])
 
@@ -130,7 +142,7 @@ class ContinuousVisualizer(BaseVisualizer):
             ax_text.text(0.05, 0.50, f"x: {best[0]:.4f}")
             ax_text.text(0.05, 0.40, f"y: {best[1]:.4f}")
 
-            return scat, best_dot_3d, conv_best, conv_avg
+            return scat, scat3d, best_dot_3d, conv_best, conv_avg
 
         ani = animation.FuncAnimation(
             fig,
