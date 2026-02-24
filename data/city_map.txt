@@ -1,3 +1,5 @@
+# infinity cost will be represented as large number (999999.0) instead of NaN, so the input edge cost should less than 10000
+
 # --- City Names ---
 Seattle
 San Francisco

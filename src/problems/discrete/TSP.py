@@ -40,6 +40,8 @@ class TravelSalesmanProblem(BaseProblem):
                 names.append(line)
 
         self.dist_mat = np.array(matrix_rows)
+        self.dist_mat[np.isinf(self.dist_mat)] = 999999.0
+
         self.city_names = names
 
         # Validation

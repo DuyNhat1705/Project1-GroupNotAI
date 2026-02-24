@@ -28,7 +28,9 @@ def get_visualizer(params):
         if logger:
             metrics = {
                 "best_fitness": logger.history.get("best_fitness", []),
-                "avg_fitness": logger.history.get("avg_fitness", [])
+                "avg_fitness": logger.history.get("avg_fitness", []),
+                "avg_cost": logger.history.get("avg_cost", []),
+                "best_cost": logger.history.get("best_cost", [])
             }
         else:
             metrics = {}

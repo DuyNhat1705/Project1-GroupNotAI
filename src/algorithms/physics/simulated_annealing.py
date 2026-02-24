@@ -13,7 +13,7 @@ class SimulatedAnnealing(BaseAlgorithm):
         step: step size from current position
         iteration: number of iterations
         """
-        default_params = {"temperature": 10, "decay": 0.95, "step": 0.1, "iteration": 600}
+        default_params = {"temperature": 50, "decay": 0.98, "step": 1.5, "iteration": 300}
         if params:
             default_params.update(params)
         # Pass the merged dict to BaseAlgorithm
@@ -77,7 +77,11 @@ class SimulatedAnnealing(BaseAlgorithm):
         # log best evalutaion as list
         logger = Logger(self.name, run_id=seed)
         logger.history["explored"] = []
-        logger.history["explored"].append((cur, cur_fit))
+
+        logger.history["explored"].append([cur.copy(), best.copy()])
+
+        logger.history["best_fitness"] = []
+        #logger.history["avg_fitness"] = []
 
         for ite in range(self.params["iteration"]):
 
@@ -91,19 +95,18 @@ class SimulatedAnnealing(BaseAlgorithm):
             if delta < 0 or random.random() < math.exp(-delta / temp):
                 cur = next_pos
                 cur_fit = next_fit
-                # Log the current position
-                logger.history["explored"].append((cur, cur_fit))
 
             # Update Best
             if cur_fit < best_fit:
                 best = cur.copy()
                 best_fit = cur_fit
 
+            logger.log("best_fitness", best_fit)
+            logger.history["explored"].append([cur.copy(), best.copy()])
+
             temp *= self.params["decay"] # decrease temperature by decay factor
 
         logger.finish(best_solution=best, best_fitness=best_fit) # log the best and terminate
-        #return best, best_fit, logger
-        logger.finish(best_solution=best, best_fitness=best_fit)
 
         # Return standard dictionary format
         return {

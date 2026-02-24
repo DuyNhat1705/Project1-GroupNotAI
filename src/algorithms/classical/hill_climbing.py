@@ -71,6 +71,8 @@ class HillClimbing(BaseAlgorithm):
         # Log starting point
         logger.history["explored"].append((cur.copy(), cur_fit))
 
+        logger.history["best_fitness"] = []
+
         for ite in range(self.params["iteration"]):
             next_pos = self.get_neighbor(cur, lower_bound, upper_bound, problem.cont_flag)
             next_fit = problem.evaluate(next_pos)
@@ -81,6 +83,7 @@ class HillClimbing(BaseAlgorithm):
                 cur = next_pos
                 # log new postion
                 logger.history["explored"].append((cur, cur_fit))
+            logger.log("best_fitness", cur_fit)
 
         # log the solution and best score
         logger.finish(best_solution=cur, best_fitness=cur_fit)

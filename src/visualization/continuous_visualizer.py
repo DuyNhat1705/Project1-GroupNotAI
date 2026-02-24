@@ -6,6 +6,7 @@ from matplotlib import gridspec
 from mpl_toolkits.mplot3d import Axes3D
 from src.visualization.base_visualizer import BaseVisualizer
 
+
 class ContinuousVisualizer(BaseVisualizer):
     def __init__(self, problem, history, title, metrics=None, grid_search_data=None):
         super().__init__(problem, history, path=[], title=title)
@@ -23,6 +24,7 @@ class ContinuousVisualizer(BaseVisualizer):
         self.save_path = os.path.join(self.save_dir, f"{title}.mp4")
 
     def animate(self):
+        #print(self.metrics)
         if not self.history:
             print("[VIS] No history to animate.")
             return
@@ -30,18 +32,21 @@ class ContinuousVisualizer(BaseVisualizer):
         print(f"[VIS] Rendering animation: {self.title}")
         print(f"[VIS] Output → {self.save_path}")
 
-        # ===== FIGURE LAYOUT =====
-        fig = plt.figure(figsize=(14, 9))
-        gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1.2], height_ratios=[1, 0.6])
+        # ===== FIGURE LAYOUT  =====
+        fig = plt.figure(figsize=(16, 9))
 
-        ax3d = fig.add_subplot(gs[0, 0], projection="3d")
+        fig.suptitle(self.title, fontsize=18, fontweight='bold', y=0.98)
+
+        gs = gridspec.GridSpec(3, 2, width_ratios=[1.6, 1], height_ratios=[1.2, 1, 0.3])
+
+        ax3d = fig.add_subplot(gs[:, 0], projection="3d")
         ax2d = fig.add_subplot(gs[0, 1])
-        ax_conv = fig.add_subplot(gs[1, 0])
-        ax_text = fig.add_subplot(gs[1, 1])
+        ax_conv = fig.add_subplot(gs[1, 1])
+        ax_text = fig.add_subplot(gs[2, 1])
         ax_text.axis("off")
 
         # ===== FUNCTION LANDSCAPE =====
-        res = 80
+        res = 101  # Odd number for perfect center sampling
         min_r, max_r = self.problem.min_range, self.problem.max_range
         x = np.linspace(min_r, max_r, res)
         y = np.linspace(min_r, max_r, res)
@@ -53,48 +58,92 @@ class ContinuousVisualizer(BaseVisualizer):
                 Z[i, j] = self.problem.evaluate(np.array([X[i, j], Y[i, j]]))
 
         # ===== STATIC PLOTS =====
-        ax3d.plot_surface(X, Y, Z, cmap="viridis", alpha=0.85)
-        ax3d.set_title("3D Objective Surface")
+        # 3D View
+        ax3d.plot_surface(X, Y, Z, cmap="viridis", alpha=0.40)
+        ax3d.set_title("3D Objective Surface", fontsize=14, fontweight='bold')
+        ax3d.set_xlabel('X Axis')
+        ax3d.set_ylabel('Y Axis')
 
+        # 2D Top View
         ax2d.contourf(X, Y, Z, levels=40, cmap="viridis", alpha=0.8)
-        ax2d.set_title("Search Space (Top View)")
+        ax2d.set_title("Search Space (Top View)", fontsize=12, fontweight='bold')
 
-        if hasattr(self.problem, "global_x"):
+        # True Global Minimum (Red Star)
+        if hasattr(self.problem, "global_x") and self.problem.global_x is not None:
             gx = self.problem.global_x
-            ax2d.scatter(gx[0], gx[1], c="red", marker="*", s=180)
 
-        scat = ax2d.scatter([], [], c="orange", s=35, edgecolors="black")
-        best_dot_3d, = ax3d.plot([], [], [], "r*", markersize=12)
+            # Draw on 2D Top View
+            ax2d.scatter(gx[0], gx[1], c="red", marker="*", s=180, edgecolors="white", zorder=3)
+            # Draw on 3D Surface
+            gz = self.problem.evaluate(np.array([gx[0], gx[1]]))
+            ax3d.scatter(gx[0], gx[1], gz, c="red", marker="*", s=300, edgecolors="black", linewidth=1, zorder=30)
 
-        # ===== CONVERGENCE =====
-        best_hist = self.metrics.get("best_fitness", [])
-        avg_hist  = self.metrics.get("avg_fitness", [])
+            # Proxy Artists for Legends
+            ax2d.plot([], [], marker="*", color="red", markeredgecolor="white", markersize=12, linestyle="None",
+                      label="Global Minimum")
+            ax3d.plot([], [], [], marker="*", color="red", markeredgecolor="black", markersize=10, linestyle="None",
+                      label="Global Minimum")
 
-        conv_best, = ax_conv.plot([], [], "r-", lw=2, label="Best")
-        conv_avg, = ax_conv.plot([], [], "b--", lw=1.5, label="Average")
+        # Dynamic Markers Setup
+        scat = ax2d.scatter([], [], c="orange", s=35, edgecolors="black", zorder=4)
+        scat3d = ax3d.scatter([], [], [], c="orange", s=35, edgecolors="black", alpha=1.0, zorder=4)
 
-        ax_conv.set_title("Convergence")
+        best_dot_2d, = ax2d.plot([], [], marker="D", color="lime", markersize=10, markeredgecolor="black",
+                                 linestyle="None", zorder=5)
+        best_dot_3d = ax3d.scatter([], [], [], c="lime", marker="D", s=100, edgecolors="black", alpha=1.0, zorder=10)
+
+        # 2D Legend Setup
+        ax2d.plot([], [], marker="o", color="orange", markeredgecolor="black", markersize=6, linestyle="None",
+                  label="Swarm")
+        ax2d.plot([], [], marker="D", color="lime", markeredgecolor="black", markersize=8, linestyle="None",
+                  label="Algo Best")
+        ax2d.legend(loc="upper right", fontsize=9, facecolor="white", framealpha=0.85, edgecolor="gray")
+
+        # 3D Legend Setup
+        ax3d.plot([], [], [], marker="o", color="orange", markeredgecolor="black", markersize=6, linestyle="None",
+                  label="Swarm")
+        ax3d.plot([], [], [], marker="D", color="lime", markeredgecolor="black", markersize=8, linestyle="None",
+                  label="Algo Best")
+        ax3d.legend(loc="upper left", fontsize=10, facecolor="white", framealpha=0.85, edgecolor="gray")
+
+        # ===== CONVERGENCE CHART =====
+        best_hist = self.metrics.get("best_fitness", []) or self.metrics.get("best_cost", [])
+        #print(best_hist)
+        avg_hist = self.metrics.get("avg_fitness", []) or self.metrics.get("avg_cost", [])
+
+        conv_best, = ax_conv.plot([], [], "royalblue", lw=2.5, label="Best Fitness")
+
+        # Only create the average line if average data actually exists!
+        conv_avg = None
+        if avg_hist:
+            conv_avg, = ax_conv.plot([], [], "darkorange", lw=1.5, linestyle="--", label="Average")
+            ax_conv.legend(loc="upper right")
+        else:
+            # If no average, label the best line clearly without a legend box
+            ax_conv.set_title("Convergence Line Chart", fontsize=12, fontweight='bold')
+
         ax_conv.set_xlabel("Generation")
         ax_conv.set_ylabel("Fitness")
-        ax_conv.legend()
-        ax_conv.grid(True, linestyle=":")
+        ax_conv.grid(True, linestyle=":", alpha=0.7)
 
         if best_hist:
-            ax_conv.set_xlim(0, len(best_hist))
-            
+            ax_conv.set_xlim(0, len(self.history))
+
             ymin = min(best_hist)
             ymax = max(best_hist)
-            
+
             if avg_hist:
                 ymin = min(ymin, min(avg_hist))
                 ymax = max(ymax, max(avg_hist))
-                
+
             if ymin == ymax:
                 ymax += 1e-6
-                
+
             ax_conv.set_ylim(ymin * 0.95, ymax * 1.05)
 
-        # ===== UPDATE =====
+        fig.tight_layout(pad=2.0)
+
+        # ===== UPDATE FUNCTION =====
         def update(frame):
             pop = self.history[frame]
             if isinstance(pop, tuple):
@@ -104,34 +153,55 @@ class ContinuousVisualizer(BaseVisualizer):
             if pop.ndim == 1:
                 pop = pop.reshape(1, -1)
 
+            # 1. Update Swarm in 2D
             scat.set_offsets(pop[:, :2])
 
+            # 2. Evaluate fitness for all bees
             fitness = [self.problem.evaluate(ind) for ind in pop]
+
+            # Update Swarm in 3D
+            scat3d._offsets3d = (pop[:, 0], pop[:, 1], fitness)
+
+            # 3. Find Current Best
             idx = np.argmin(fitness)
             best = pop[idx]
             bz = fitness[idx]
 
-            best_dot_3d.set_data([best[0]], [best[1]])
-            best_dot_3d.set_3d_properties([bz])
+            # 3. Update Best Markers
+            best_dot_2d.set_data([best[0]], [best[1]])
+            z_bump = 0.2
+            best_dot_3d._offsets3d = (np.array([best[0]]), np.array([best[1]]), np.array([bz + z_bump]))
 
+            # Spin the 3D camera slightly every frame
             ax3d.view_init(elev=35, azim=frame * 3)
 
+            # 4. Update Convergence Chart
             if frame < len(best_hist):
                 x = np.arange(frame + 1)
                 conv_best.set_data(x, best_hist[:frame + 1])
 
-                if frame < len(avg_hist):
+                if avg_hist and frame < len(avg_hist) and conv_avg:
                     conv_avg.set_data(x, avg_hist[:frame + 1])
 
+            # 5. Update Styled Background Text Box
             ax_text.clear()
             ax_text.axis("off")
-            ax_text.text(0.05, 0.85, f"Generation: {frame}", fontsize=12, weight="bold")
-            ax_text.text(0.05, 0.65, f"Best fitness: {bz:.6f}")
-            ax_text.text(0.05, 0.50, f"x: {best[0]:.4f}")
-            ax_text.text(0.05, 0.40, f"y: {best[1]:.4f}")
 
-            return scat, best_dot_3d, conv_best, conv_avg
+            stats_msg = (
+                f"Generation : {frame+1} / {len(self.history)}\n"
+                f"Best Score : {bz:.6f}\n"
+                f"Coordinates: X={best[0]:.3f}, Y={best[1]:.3f}"
+            )
 
+            ax_text.text(0.5, 0.5, stats_msg, transform=ax_text.transAxes,
+                         ha='center', va='center', fontsize=12, fontweight='bold', fontfamily='monospace',
+                         bbox=dict(boxstyle='round,pad=1.2', facecolor='#eef2f5', edgecolor='#ced4da', linewidth=2))
+
+            if conv_avg:
+                return scat, best_dot_2d, best_dot_3d, conv_best, conv_avg
+            return scat, best_dot_2d, best_dot_3d, conv_best
+
+        # ===== EXPORT =====
         ani = animation.FuncAnimation(
             fig,
             update,
@@ -140,8 +210,8 @@ class ContinuousVisualizer(BaseVisualizer):
             blit=False,
         )
 
-        writer = animation.FFMpegWriter(fps=15, bitrate=1800)
+        writer = animation.FFMpegWriter(fps=15, bitrate=2500)
         ani.save(self.save_path, writer=writer)
 
         plt.close()
-        print("[VIS] Done.")
+        print("[VIS] Video saved successfully.")
