@@ -117,7 +117,7 @@ class GraphVisualizer(BaseVisualizer):
         try:
             print(f"Saving to {self.save_path} ...")
 
-            writer = animation.FFMpegWriter(fps=5, metadata=dict(artist='GraphSolver'), bitrate=1800) # FFmpeg WRITER
+            writer = animation.FFMpegWriter(fps=10, metadata=dict(artist='GraphSolver'), bitrate=1800) # FFmpeg WRITER
 
             ani.save(self.save_path, writer=writer)
             print("Done successfully.")

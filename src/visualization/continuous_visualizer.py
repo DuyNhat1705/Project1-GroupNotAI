@@ -152,7 +152,7 @@ class ContinuousVisualizer(BaseVisualizer):
             blit=False,
         )
 
-        writer = animation.FFMpegWriter(fps=15, bitrate=1800)
+        writer = animation.FFMpegWriter(fps=10, bitrate=1800)
         ani.save(self.save_path, writer=writer)
 
         plt.close()
