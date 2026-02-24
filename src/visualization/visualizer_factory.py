@@ -1,4 +1,5 @@
 from src.visualization.TSP_viz import TSPVisualizer
+from src.visualization.TSP_GA_viz import TSPGAVisualizer
 from src.visualization.graph_visualizer import GraphVisualizer
 from src.visualization.maze_visualizer import MazeVisualizer
 from src.visualization.continuous_visualizer import ContinuousVisualizer
@@ -64,9 +65,25 @@ def get_visualizer(params):
 
             case "TSP":
                 logger = result.get("logger")
-                history = logger.history.get("explored", [])
+                history = logger.history.get("population", [])
+
+                algo_name = params.get("algorithm", "").lower()
                 title = params.get("algorithm", "Unknown Algo") + " on TSP"
-                return TSPVisualizer(problem, history, path=None, title=title)
+
+                if "genetic" in algo_name or "ga" in algo_name:
+                    return TSPGAVisualizer(
+                        problem,
+                        history,
+                        logger=logger,
+                        title=title
+                    )
+                else:
+                    return TSPVisualizer(
+                        problem,
+                        history,
+                        path=None,
+                        title=title
+                    )
 
             case "Graph Coloring":
                 logger = result.get("logger")

@@ -8,6 +8,7 @@ class TravelSalesmanProblem(BaseProblem):
         self.city_names = []
         self.coords = None  # coords for visualization
         self.dist_mat = None
+        self.best_distance = None
 
         self.filepath = os.path.join(BaseProblem.project_root, 'data', 'city_map.txt')
 
@@ -19,35 +20,39 @@ class TravelSalesmanProblem(BaseProblem):
 
     def load_from_file(self, filepath):
         with open(filepath, "r") as f:
-            lines = [l.strip() for l in f.readlines() if l.strip() and not l.strip().startswith("#")] #skip comment lines
+            raw_lines = [l.strip() for l in f.readlines() if l.strip()]
 
-        # Try convert lines to numbers.
-        # If successful -> Matrix Row. If fail -> City Name.
         names = []
         matrix_rows = []
+        best_distance = None
+        read_best = False
 
-        for line in lines:
+        for line in raw_lines:
+            if line.startswith("#"):
+                if "Best Distance" in line:
+                    read_best = True
+                continue
+
+            if read_best:
+                best_distance = float(line)
+                read_best = False
+                continue
+
             try:
-                # Try converting to list of floats
                 row = list(map(float, line.split()))
-                # If the row has more than 1 number, assume matrix row
                 if len(row) > 1:
                     matrix_rows.append(row)
-                else:
-                    pass
             except ValueError:
-                # Could not convert to numbers -> City Name
                 names.append(line)
 
         self.dist_mat = np.array(matrix_rows)
         self.dist_mat[np.isinf(self.dist_mat)] = 999999.0
 
         self.city_names = names
+        self.best_distance = best_distance
 
-        # Validation
         if len(self.city_names) != len(self.dist_mat):
             print(f"[WARNING] Mismatch: {len(self.city_names)} names vs {len(self.dist_mat)} matrix rows.")
-            # Auto-fix names if missing
             if len(self.city_names) == 0:
                 self.city_names = [f"City_{i}" for i in range(len(self.dist_mat))]
 

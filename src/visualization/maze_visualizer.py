@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 from matplotlib.colors import ListedColormap
 
 class MazeVisualizer(BaseVisualizer):
-    def __init__(self,problem,history,path, title):
+    def __init__(self, problem, history,path, title):
         super().__init__(problem, history, path, title)
 
     def animate_maze(self):
@@ -132,7 +132,7 @@ class MazeVisualizer(BaseVisualizer):
             print(f"Saving to {self.save_path} ...")
 
             writer = animation.FFMpegWriter(
-                fps=5,
+                fps=15,
                 metadata=dict(artist='MazeSolver'),
                 bitrate=1800
             )
