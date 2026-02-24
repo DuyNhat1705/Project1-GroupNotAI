@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import gridspec
-from mpl_toolkits.mplot3d import Axes3D
 from src.visualization.base_visualizer import BaseVisualizer
 
 
@@ -24,7 +23,6 @@ class ContinuousVisualizer(BaseVisualizer):
         self.save_path = os.path.join(self.save_dir, f"{title}.mp4")
 
     def animate(self):
-        #print(self.metrics)
         if not self.history:
             print("[VIS] No history to animate.")
             return
