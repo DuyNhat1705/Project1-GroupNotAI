@@ -51,7 +51,7 @@ class KnapsackProblem(BaseProblem):
             penalty = total_weight - self.capacity
             return 1e-5 / penalty
 
-        # Return Negative Value for Minimization Algorithms
+        # Return Value for Maximize Algorithms
         return float(total_value)
 
 

@@ -35,7 +35,7 @@ class KnapsackVisualizer(BaseVisualizer):
             print("ERROR: Nothing to animate!")
             return
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7), gridspec_kw={'width_ratios': [1, 1.5]})
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 10), gridspec_kw={'width_ratios': [1, 1.5]})
         fig.suptitle(self.title, fontsize=16, fontweight='bold')
 
         # Distinct colors for each item

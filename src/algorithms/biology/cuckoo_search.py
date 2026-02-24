@@ -83,15 +83,15 @@ class CS(BaseAlgorithm):
         return new_nest
 
     # Main Cuckoo Search
-    def solve(self, problem, seed=None):
+    def solveContinuous(self, problem, seed=None):
         dim = problem.dimension
         pa = self.params.get("pa", 0.25)
         num_iters = self.params.get("num_iters", 100)
         n = self.params.get("pop_size", 25)
 
 
-        Lb = self.params.get("lb", -5) * np.ones(dim)
-        Ub = self.params.get("ub", 5) * np.ones(dim)
+        Lb = problem.min_range * np.ones(dim)
+        Ub = problem.max_range * np.ones(dim)
 
         logger = Logger(self.name, run_id=seed)
         logger.history["population"] = []
@@ -124,3 +124,102 @@ class CS(BaseAlgorithm):
         logger.finish(bestnest, fmin)
         return {"time(ms)": logger.meta["runtime"],
                 "result": {"best_solution": bestnest, "best_fitness": fmin, "logger": logger}}
+    
+    def sigmoid(self,x):
+        return 1 / (1 + np.exp(-x))
+    def repair(self,selection,weights, values, capacity):
+        total_weight = np.sum(selection * weights)
+
+        if total_weight <= capacity:
+            return selection
+
+        ratio = values / weights
+        idx_sorted = np.argsort(ratio)
+
+        for idx in idx_sorted:
+            if selection[idx] == 1:
+                selection[idx] = 0
+                total_weight -= weights[idx]
+                if total_weight <= capacity:
+                    break
+        return selection
+    def solveKnapsack(self, problem, seed = None):
+        
+        n = self.params.get("pop_size", 25)
+        dim = problem.dimension
+        pa = self.params.get("pa", 0.25)
+        num_iters = self.params.get("num_iters", 100)
+
+        weights = problem.weights
+        values = problem.values
+        capacity = problem.capacity
+        
+        nest = np.random.rand(n, dim)
+        fitness = np.zeros(n)
+        binary_pop = np.zeros((n,dim))
+        logger = Logger(self.name, run_id=seed)
+        logger.history["current_best"] = []
+        logger.history["best_fitness"] = []
+
+        # Initialize population
+        for i in range (n):
+            prob = self.sigmoid(nest[i])
+            bin_sol = (np.random.rand(dim) < prob).astype(int)
+            bin_sol = self.repair(bin_sol,weights, values, capacity)
+            fitness[i] = problem.evaluate(bin_sol)
+            binary_pop[i] = bin_sol.copy()
+        best_idx = np.argmax(fitness)
+        best = nest[best_idx].copy()
+        fmax = fitness[best_idx]
+        best_binary = binary_pop[best_idx].copy()
+
+        logger.log("current_best", best_binary)
+        logger.log("best_fitness", fmax)
+
+        for i in range(num_iters):
+            # Levy flight
+            new_nest = self.get_cuckoos(nest, best, np.zeros(dim),np.ones(dim))
+
+            for j in range(n):
+                prob = self.sigmoid(new_nest[j])
+                bin_sol = (np.random.rand(dim) < prob).astype(int)
+                bin_sol = self.repair(bin_sol, weights, values, capacity)
+                fnew = problem.evaluate(bin_sol)
+
+                if fnew >= fitness[j]:
+                    nest[j] = new_nest[j].copy()
+                    fitness[j] = fnew
+                    binary_pop[j] = bin_sol.copy()
+
+            # Abandon phase
+            new_nest = self.empty_nests(nest, np.zeros(dim), np.ones(dim), pa)
+
+            for j in range (n):
+                prob = self.sigmoid(new_nest[j])
+                bin_sol = (np.random.rand(dim) < prob).astype(int)
+                bin_sol = self.repair(bin_sol, weights, values, capacity)
+                fnew = problem.evaluate(bin_sol)
+
+                if fnew >= fitness[j]:
+                    nest[j] = new_nest[j].copy()
+                    fitness[j] = fnew
+                    binary_pop[j] = bin_sol.copy()
+            
+            best_idx = np.argmax(fitness)
+            if fitness[best_idx] > fmax:
+                fmax = fitness[best_idx]
+                best = nest[best_idx].copy()
+                best_binary = binary_pop[best_idx].copy()
+            logger.log("current_best", best_binary)
+            logger.log("best_fitness",fmax)
+
+        logger.finish(best_binary, fmax)
+        
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": best_binary, "best_fitness": fmax, "logger": logger}}
+
+    def solve(self, problem, seed=None):
+        if problem.cont_flag:
+            return self.solveContinuous(problem, seed)
+        else:
+            return self.solveKnapsack(problem, seed)

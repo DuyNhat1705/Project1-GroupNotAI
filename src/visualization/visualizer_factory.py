@@ -40,24 +40,26 @@ def get_visualizer(params):
     # 2. DISCRETE PROBLEMS (Graph, Maze)
     else:
         problem_name = problem.getName()
-        print(f"  -> Done. Cost: {result.get('cost', 'N/A')}")
         match problem_name:
             case "ShortestPathOnGraph":
+                print(f"  -> Done. Cost: {result.get('cost', 'N/A')}")
                 history = result.get("logger", None).history.get("visited_edges", [])
                 path = result.get("path", [])
-                title = params.get("algorithm") + " Visualization"
+                title = params.get("algorithm") + " on Graph"
                 return GraphVisualizer(problem, history, path, title)
                 
             case "ShortestPathOnMaze":
+                print(f"  -> Done. Cost: {result.get('cost', 'N/A')}")
                 logger = result.get("logger")
                 history = logger.history.get("visited_edges", [])
                 path = result.get("path", [])
-                title = params.get("algorithm") + " Visualization"
+                title = params.get("algorithm") + " on Maze"
                 return MazeVisualizer(problem, history, path, title)
             
             case "Knapsack Problem":
+                print(f"  -> Done. Best Fitness: {result.get('best_fitness', None)}")
                 history = result.get("logger").history.get("current_best", [])
-                title = params.get("algorithm") + " Visualization"
+                title = params.get("algorithm") + " on Knapsack"
                 return KnapsackVisualizer(problem, history, path=None, title=title)
 
             case "TSP":
@@ -69,7 +71,7 @@ def get_visualizer(params):
             case "Graph Coloring":
                 logger = result.get("logger")
                 history = result.get("logger").history.get("current_best", [])
-                title = params.get("algorithm") + " Visualization"
+                title = params.get("algorithm") + " on Graph Coloring"
                 return GraphColoringVisualizer(problem, history, path=None, title=title)
 
             case _:

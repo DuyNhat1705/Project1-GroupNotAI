@@ -14,7 +14,7 @@ class BaseVisualizer(ABC):
         self.save_path = os.path.join(
             BaseVisualizer.project_root,
             "output",
-            title + problem.getName() + ".mp4"
+            title + ".mp4"
         )
 
     @abstractmethod
