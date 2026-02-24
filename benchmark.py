@@ -25,15 +25,15 @@ from src.algorithms.classical.hill_climbing import HillClimbing
 # ---  PROBLEM-TO-ALGORITHM MAP ---
 # Defines which algorithms can attempt which problems
 COMPATIBILITY = {
-    "continuous": ["ABC", "SA", "HC", "PSO", "CS", "FA"],
-    "tsp": ["SA", "HC"],
+    "continuous": ["ABC", "SA", "HC", "PSO", "CS", "FA", "ACO"],
+    "tsp": ["SA", "HC", "PSO", "FA", "ACO"],
     "maze": ["A*", "BFS", "DFS"],
-    "knapsack": ["ABC", "SA", "BFS"]
+    "knapsack": ["ABC", "SA", "BFS", "PSO", "FA", "ACO"]
 }
 
 ALGO_CLASSES = {
     "ABC": ArtificialBee, "SA": SimulatedAnnealing, "HC": HillClimbing, "PSO": PSO, "CS": CS, "FA": FireflyAlgorithm,
-    "A*": A_Star, "BFS": BFS, "DFS": DFS
+    "A*": A_Star, "BFS": BFS, "DFS": DFS, "ACO": ACO
 }
 
 # Define known optimums for Error calculations (Continuous)

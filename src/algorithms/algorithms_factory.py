@@ -7,6 +7,9 @@ from src.algorithms.classical.hill_climbing import HillClimbing
 from src.algorithms.physics.simulated_annealing import SimulatedAnnealing
 from src.algorithms.biology.artificial_bee import ArtificialBee
 from src.algorithms.biology.cuckoo_search import CS
+from src.algorithms.biology.ant_colony_optimization import ACO
+from src.algorithms.biology.particle_swarm import PSO
+from src.algorithms.biology.firefly_algorithm import FireflyAlgorithm
 from src.algorithms.human.tlbo import TLBO
 
 def get_algorithm(name, **kwargs):
@@ -48,7 +51,16 @@ def get_algorithm(name, **kwargs):
         "teachinglearningbasedoptimization": TLBO,
 
         "cs": CS,
-        "cuckoosearch": CS
+        "cuckoosearch": CS,
+        
+        "aco": ACO,
+        "antcolonyoptimization": ACO,
+        
+        "pso": PSO,
+        "particleswarmoptimization": PSO,
+        
+        "fa": FireflyAlgorithm,
+        "fireflyalgorithm": FireflyAlgorithm
     }
 
     if name_key not in algos:
