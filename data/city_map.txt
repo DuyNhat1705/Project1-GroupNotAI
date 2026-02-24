@@ -1,3 +1,5 @@
+# infinity cost will be represented as large number (999999.0) instead of NaN, so the input edge cost should less than 10000
+
 # --- City Names ---
 Seattle
 San Francisco
@@ -31,3 +33,6 @@ Singapore
 5710 5950 6290 6630 7090 5700 5790 5540 5590 6390 1095 540  0    758  2350
 6500 6910 7250 7590 8050 5990 6080 5830 5880 6680 1795 1298 758  0    1610
 8050 8430 8770 9110 9570 6750 6840 6590 6640 7440 3300 2850 2350 1610 0
+
+# --- Best Distance ---
+23535

@@ -8,7 +8,7 @@ class ArtificialBee(BaseAlgorithm):
 
     def __init__(self, params=None):
         # 1. Define the safe default parameters using UNDERSCORES consistently
-        default_params = {"total_bee": 50, "iteration": 400, "limit": 20}
+        default_params = {"total_bee": 50, "iteration": 100, "limit": 20}
 
         # 2. If the user passed anything, update the defaults with their values
         if params:
@@ -29,19 +29,6 @@ class ArtificialBee(BaseAlgorithm):
         else:
             return cost # return the value of knapsack
 
-    # def helper_cand_gen(self, dim, cur, partner, flag, lower, upper):
-    #     # create candidate solution
-    #     phi = np.random.uniform(-1, 1, dim)
-    #
-    #     # <solution> = <food source> + <phi> * <delta food source>
-    #     new_solution = cur + phi * (cur - partner)
-    #
-    #     if flag: # case: continuous problem
-    #         return np.clip(new_solution, lower, upper)
-    #     else:
-    #         probs = 1 / (1 + np.exp(-new_solution))
-    #         rand_mat = np.random.rand(dim)
-    #         return (rand_mat < probs).astype(int)
 
     def helper_cand_gen(self, dim, cur, partner, flag, lower, upper):
         if flag:  # Continuous problem
@@ -111,6 +98,7 @@ class ArtificialBee(BaseAlgorithm):
         logger.history["current_best"] = []
         logger.history["best_cost"] = []
         logger.history["population"] = []
+        logger.history["avg_cost"] = []
 
         # --- Main Loop ---
         for it in range(self.params["iteration"]):
@@ -197,16 +185,24 @@ class ArtificialBee(BaseAlgorithm):
 
             # Logging per iteration
             logger.log("best_solution", best_solution.copy())
-            logger.log("best_cost", best_cost)
+
             if flag:
                 current_best_idx = np.argmin(cost_arr)
             else:
                 current_best_idx = np.argmax(cost_arr)
             current_best_bee = food_source_arr[current_best_idx].copy()
+            logger.history["avg_cost"].append(np.mean(cost_arr))
             logger.history["current_best"].append(current_best_bee)
             logger.history["population"].append(food_source_arr.copy())
+            logger.history["best_cost"].append(best_cost)
         # Finish
         logger.finish(best_solution=best_solution, best_fitness=best_cost)
-        return {"time(ms)": logger.meta["runtime"],
-                "result": {"best_solution": best_solution.tolist(), "best_fitness": self.calc_fitness(flag, best_cost), "logger": logger}}
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {
+                "best_solution": best_solution.tolist(),
+                "best_cost": best_cost,
+                "logger": logger
+            }
+        }
 
