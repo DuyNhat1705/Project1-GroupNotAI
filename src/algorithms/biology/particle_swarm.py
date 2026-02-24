@@ -7,8 +7,9 @@ import random
 class PSO(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
-            'swarm_size': 30, 'iterations': 100, 'w_max': 0.9, 'w_min': 0.4,
-            'c1': 2.0, 'c2': 2.0, 'v_clamp': True
+            'swarm_size': 30, 'iterations': 100,
+            'w_max': 0.9, 'w_min': 0.4,
+            'c1': 2.05, 'c2': 2.05
         }
         if params:
             default_params.update(params)
@@ -26,47 +27,53 @@ class PSO(BaseAlgorithm):
             random.seed(seed)
             np.random.seed(seed)
         
+        # Detect problem type
+        if hasattr(problem, 'cont_flag') and problem.cont_flag:
+            return self._solve_continuous(problem, seed)
+        elif hasattr(problem, 'dist_mat'):
+            return self._solve_tsp(problem, seed)
+        else:
+            return self._solve_continuous(problem, seed)
+    
+    def _solve_continuous(self, problem, seed):
         logger = Logger(self.name, run_id=seed)
-        logger.history["iteration_best"] = []
+        logger.history["population"] = []  # For visualization
+        logger.history["best_fitness"] = []
+        logger.history["avg_fitness"] = []
         
         dims = problem.dimension
         flag = problem.cont_flag
-        lb, ub = (problem.bounds[:, 0], problem.bounds[:, 1]) if flag else (0, 2)
-        v_max = 0.2 * (ub - lb) if (self.v_clamp and flag) else (0.4 if self.v_clamp else None)
+        if flag:
+            bounds = np.array(problem.bounds)
+            lb, ub = bounds[:, 0], bounds[:, 1]
+        else:
+            lb, ub = 0, 2
         
-        # Initialize swarm
         positions = np.random.uniform(lb, ub, (self.swarm_size, dims)) if flag else \
                     np.random.randint(0, 2, (self.swarm_size, dims)).astype(float)
         velocities = np.random.uniform(-1, 1, (self.swarm_size, dims))
         
-        # Initialize personal and global best
         pbest_pos = positions.copy()
         pbest_cost = np.array([problem.evaluate(p) for p in positions])
         gbest_idx = np.argmin(pbest_cost) if flag else np.argmax(pbest_cost)
         gbest_pos, gbest_cost = pbest_pos[gbest_idx].copy(), pbest_cost[gbest_idx]
         
         for iteration in range(self.iterations):
-            w = self.w_max - (self.w_max - self.w_min) * iteration / self.iterations
+            w = self.w_max - (self.w_max - self.w_min) * iteration / (self.iterations - 1)
             iter_costs = []
             
             for i in range(self.swarm_size):
-                # Update velocity and position
                 r1, r2 = np.random.random(dims), np.random.random(dims)
                 velocities[i] = w * velocities[i] + self.c1 * r1 * (pbest_pos[i] - positions[i]) + \
                                 self.c2 * r2 * (gbest_pos - positions[i])
                 
-                if v_max is not None:
-                    velocities[i] = np.clip(velocities[i], -v_max, v_max)
-                
                 positions[i] += velocities[i]
                 
-                # Apply bounds
                 if flag:
                     positions[i] = np.clip(positions[i], lb, ub)
                 else:
                     positions[i] = (np.random.rand(dims) < 1 / (1 + np.exp(-positions[i]))).astype(float)
                 
-                # Evaluate and update best
                 cost = problem.evaluate(positions[i])
                 iter_costs.append(cost)
                 
@@ -78,8 +85,66 @@ class PSO(BaseAlgorithm):
                         gbest_cost = cost
                         gbest_pos = positions[i].copy()
             
-            logger.history["iteration_best"].append(min(iter_costs) if flag else max(iter_costs))
+            # Log metrics for convergence visualization (every iteration for better tracking)
+            avg_fitness = np.mean(iter_costs)
+            logger.history["best_fitness"].append(gbest_cost)
+            logger.history["avg_fitness"].append(avg_fitness)
+            # Log population for visualization
+            logger.history["population"].append(positions.copy())
         
         logger.finish(best_solution=gbest_pos.tolist(), best_fitness=self.calc_fitness(flag, gbest_cost))
         return {"time(ms)": logger.meta["runtime"],
                 "result": {"best_solution": gbest_pos.tolist(), "best_fitness": self.calc_fitness(flag, gbest_cost), "logger": logger}}
+    
+    def _solve_tsp(self, problem, seed):
+        """PSO for TSP - order-based encoding"""
+        logger = Logger(self.name, run_id=seed)
+        logger.history["iteration_best"] = []
+        
+        n = problem.dimension
+        positions = np.random.uniform(0, 1, (self.swarm_size, n))
+        velocities = np.random.uniform(-1, 1, (self.swarm_size, n))
+        
+        def pos_to_tour(pos):
+            return np.argsort(pos)
+        
+        tours = [pos_to_tour(pos) for pos in positions]
+        costs = [problem.evaluate(tour) for tour in tours]
+        
+        pbest_pos = positions.copy()
+        pbest_cost = np.array(costs, dtype=float) 
+        gbest_idx = np.argmin(pbest_cost)
+        gbest_pos = positions[gbest_idx].copy()
+        gbest_cost = costs[gbest_idx]
+        
+        for iteration in range(self.iterations):
+            w = self.w_max - (self.w_max - self.w_min) * iteration / (self.iterations - 1)
+            
+            for i in range(self.swarm_size):
+                r1, r2 = np.random.random(n), np.random.random(n)
+                velocities[i] = w * velocities[i] + self.c1 * r1 * (pbest_pos[i] - positions[i]) + \
+                                self.c2 * r2 * (gbest_pos - positions[i])
+                velocities[i] = np.clip(velocities[i], -0.4, 0.4)  # TSP stability
+                positions[i] += velocities[i]
+                positions[i] = np.clip(positions[i], 0, 1)
+                
+                tour = pos_to_tour(positions[i])
+                cost = problem.evaluate(tour)
+                
+                if cost < pbest_cost[i]:
+                    pbest_cost[i] = cost
+                    pbest_pos[i] = positions[i].copy()
+                    if cost < gbest_cost:
+                        gbest_cost = cost
+                        gbest_pos = positions[i].copy()
+            
+            # Log every iteration for TSP convergence tracking
+            best_tour_iter = pos_to_tour(gbest_pos)
+            logger.history["iteration_best"].append((best_tour_iter.copy(), gbest_cost))
+        
+        logger.history["explored"] = logger.history["iteration_best"]
+        
+        best_tour = pos_to_tour(gbest_pos)
+        logger.finish(best_solution=best_tour, best_fitness=gbest_cost)
+        return {"time(ms)": logger.meta["runtime"],
+                "result": {"best_solution": best_tour.tolist(), "cost": gbest_cost, "logger": logger}}
