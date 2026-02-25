@@ -6,115 +6,88 @@ import matplotlib.pyplot as plt
 import argparse
 import threading
 import _thread
-from src.algorithms.classical.dfs import DFS
-from src.algorithms.classical.bfs import BFS
-from src.algorithms.classical.a_star import A_Star
+
 from src.problems.problems_factory import get_problem
-from src.algorithms.biology.artificial_bee import ArtificialBee
-from src.algorithms.biology.ant_colony_optimization import ACO
-from src.algorithms.biology.particle_swarm import PSO
-from src.algorithms.biology.cuckoo_search import CS
-from src.algorithms.biology.firefly_algorithm import FireflyAlgorithm
-from src.algorithms.evolution.differential_evolution import DifferentialEvolution
-from src.algorithms.evolution.genetic_algorithm import GeneticAlgorithm
-from src.algorithms.human.tlbo import TLBO
-from src.algorithms.physics.simulated_annealing import SimulatedAnnealing
-from src.algorithms.classical.hill_climbing import HillClimbing
+from src.algorithms.algorithms_factory import get_algorithm
+from src.HandleCLI import parse_param_string
 
-
-# ---  PROBLEM-TO-ALGORITHM MAP ---
-# Defines which algorithms can attempt which problems
+# ==========================================
+# CONFIGURATIONS
+# ==========================================
 COMPATIBILITY = {
-    "continuous": ["ABC", "SA", "HC", "PSO", "CS", "FA", "ACO"],
-    "tsp": ["SA", "HC", "PSO", "FA", "ACO"],
-    "maze": ["A*", "BFS", "DFS"],
-    "knapsack": ["ABC", "SA", "BFS", "PSO", "FA", "ACO"]
+    "continuous": ["abc", "sa", "hc", "pso", "cs", "fa", "aco", "ga", "de", "tlbo"],
+    "tsp": ["sa", "hc", "pso", "fa", "aco", "ga"],
+    "maze": ["astar", "bfs", "dfs"],
+    "knapsack": ["abc", "bfs", "pso", "fa","cs", "tlbo"],
+    "graphcoloring": ["bfs", "dfs"]
 }
 
-ALGO_CLASSES = {
-    "ABC": ArtificialBee, "SA": SimulatedAnnealing, "HC": HillClimbing, "PSO": PSO, "CS": CS, "FA": FireflyAlgorithm,
-    "A*": A_Star, "BFS": BFS, "DFS": DFS, "ACO": ACO
-}
-
-# Define known optimums for Error calculations (Continuous)
-KNOWN_OPTIMUMS = {
-    "sphere": 0.0, "griewank": 0.0, "rosenbrock": 0.0, "ackley": 0.0, "michalewicz": -1.80, "rastrigin": 0.0
-}
 
 def timeout_handler(flag):
-    """Sets the timeout flag and forces a KeyboardInterrupt in the main thread."""
+    """Sets the timeout flag and forces a KeyboardInterrupt in the main thread"""
     flag[0] = True
     _thread.interrupt_main()
 
 def determine_category(prob_name):
     prob = prob_name.lower()
-    if prob in ["sphere", "rosenbrock", "griewank", "ackley"]: return "continuous"
     if prob in ["tsp", "travelsalesman"]: return "tsp"
     if prob in ["maze", "shortestpathonmaze"]: return "maze"
     if prob in ["knapsack"]: return "knapsack"
-    return "continuous"  # default fallback
-
+    if prob in ["graph", "shortestpathongraph"]: return "graph"
+    if prob in ["graphcoloring"]: return "graphcoloring"
+    return "continuous"
 
 def extract_convergence(logger):
     """Extracts the convergence curve, ensuring 1D numeric data."""
     if not logger: return []
-
-    # Check for explicit cost history
     if "best_cost" in logger.history:
         return [float(val) for val in logger.history["best_cost"]]
-
-    # Check for explored history (Used by SA, HC) -> Format: [(solution, fitness), ...]
-    elif "explored" in logger.history:
-        curve = []
-        for step in logger.history["explored"]:
-            # Make sure the step is tuple and has second val
-            if isinstance(step, (tuple, list)) and len(step) >= 2:
-                val = step[1]
-                # Only append actual number (ignore edge)
-                if isinstance(val, (int, float, np.floating, np.integer)):
-                    curve.append(float(val))
-        return curve
-
+    elif "best_fitness" in logger.history:
+        return [float(val) for val in logger.history["best_fitness"]]
     return []
 
-def run_benchmark(prob_name, runs=30):
+
+def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
+    if algo_params is None:
+        algo_params = {}
+
     category = determine_category(prob_name)
     compatible_algos = COMPATIBILITY.get(category, [])
 
-    print(f"\nBenchmarking {prob_name.upper()} against: {compatible_algos}")
+    print(f"\nBenchmarking {prob_name.upper()} (Dim: {dim}) against: {compatible_algos}")
+    if algo_params:
+        print(f"Custom Algorithm Params: {algo_params}")
 
     stats = {}
+    optimum = None
 
     for algo_name in compatible_algos:
-        if algo_name not in ALGO_CLASSES: continue
-
-        print(f" -> Running {algo_name} ({runs} runs)...")
+        print(f" -> Running {algo_name.upper()} ({runs} runs)...")
         stats[algo_name] = {'fitness': [], 'time': [], 'memory': [], 'convergence': [], 'nodes': []}
 
         for i in range(runs):
-            problem = get_problem(prob_name, dimension=10, seed=i)
-            algo = ALGO_CLASSES[algo_name]()
+            problem = get_problem(prob_name, dimension=dim, seed=i)
 
-            # --- TIMEOUT SETUP ---
+            if optimum is None and hasattr(problem, "global_min"):
+                optimum = problem.global_min
+
+            algo = get_algorithm(algo_name, **algo_params)
+
             timeout_flag = [False]
-            # Create a 10-second timer that will call timeout_handler
             timer = threading.Timer(10.0, timeout_handler, args=[timeout_flag])
 
             tracemalloc.start()
             start_time = time.perf_counter()
 
             try:
-                timer.start()  # Start the countdown
-
+                timer.start()
                 raw_output = algo.solve(problem, seed=i)
-
-                timer.cancel()  # If it finishes in time, stop counting
+                timer.cancel()
 
                 end_time = time.perf_counter()
                 _, peak_mem = tracemalloc.get_traced_memory()
                 tracemalloc.stop()
 
-                # Log the results
                 res = raw_output["result"]
                 final_fit = res.get("best_fitness", res.get("cost", 0))
 
@@ -129,35 +102,29 @@ def run_benchmark(prob_name, runs=30):
                 print(f"  Run {i + 1:02d}/{runs} | Fit: {final_fit:.4f} | Time: {(end_time - start_time) * 1000:.1f}ms",
                       end="\r")
 
-            # --- CATCH THE TIMEOUT ---
             except KeyboardInterrupt:
                 timer.cancel()
                 tracemalloc.stop()
-
                 if timeout_flag[0]:
                     print(f"\n  [TIMEOUT] Run {i + 1} exceeded 10s! BFS/DFS has combinatorial explosion.")
-                    break  # Break the loop for this algorithm
+                    break
                 else:
                     raise
-
-            # --- CATCH OTHER ERRORS ---
             except Exception as e:
                 timer.cancel()
                 tracemalloc.stop()
                 print(f"\n  [ERROR] Run {i + 1} failed: {e}")
                 break
 
-    generate_svg_reports(stats, prob_name)
+    generate_svg_reports(stats, prob_name, optimum)
 
 
-def generate_svg_reports(stats, prob_name):
+def generate_svg_reports(stats, prob_name, optimum=None):
     os.makedirs("output", exist_ok=True)
-
-    # Filter out any algorithms that crashed or returned empty data
     valid_labels = [algo for algo in stats.keys() if len(stats[algo]['fitness']) > 0]
 
     if not valid_labels:
-        print(f"[WARNING] No algorithms successfully solved {prob_name}. Skipping charts.")
+        print(f"\n[WARNING] No algorithms successfully solved {prob_name}. Skipping charts.")
         return
 
     def save_plot(suffix):
@@ -175,15 +142,27 @@ def generate_svg_reports(stats, prob_name):
         for algo in valid_labels:
             curves = [c for c in stats[algo]['convergence'] if c]
             if curves:
-                # Ensure the curve data is numeric before plotting
                 if not isinstance(curves[0][0], (int, float, np.floating, np.integer)):
                     continue
-
                 max_len = max(len(c) for c in curves)
                 padded = [c + [c[-1]] * (max_len - len(c)) for c in curves]
-                plt.plot(np.mean(padded, axis=0), label=algo, linewidth=2)
 
-        plt.title(f"Convergence - {prob_name.upper()}")
+                # THE FIX: Calculate Mean and Standard Deviation for the shaded area
+                mean_curve = np.mean(padded, axis=0)
+                std_curve = np.std(padded, axis=0)
+                x_axis = np.arange(len(mean_curve))
+
+                # Plot the solid mean line and capture its color
+                line, = plt.plot(x_axis, mean_curve, label=algo.upper(), linewidth=2)
+
+                # Add the semi-transparent shaded standard deviation
+                plt.fill_between(x_axis, mean_curve - std_curve, mean_curve + std_curve,
+                                 color=line.get_color(), alpha=0.15)
+
+        if optimum is not None:
+            plt.axhline(y=optimum, color='black', linestyle='--', linewidth=1.5, label=f"True Optimum ({optimum})")
+
+        plt.title(f"Convergence (Mean ± Std) - {prob_name.upper()}")
         plt.xlabel("Iterations")
         plt.ylabel("Score")
         if plt.gca().get_legend_handles_labels()[0]:
@@ -200,11 +179,8 @@ def generate_svg_reports(stats, prob_name):
     try:
         plt.figure(figsize=(8, 6))
         fitness_data = [stats[algo]['fitness'] for algo in valid_labels]
-
-        # THE FIX: Version-agnostic boxplot. Draw the boxes first, label them after!
         plt.boxplot(fitness_data, patch_artist=True)
-        plt.xticks(ticks=range(1, len(valid_labels) + 1), labels=valid_labels)
-
+        plt.xticks(ticks=range(1, len(valid_labels) + 1), labels=[l.upper() for l in valid_labels])
         plt.title(f"Robustness (Score Distribution) - {prob_name.upper()}")
         plt.ylabel("Final Score Found")
         plt.grid(True, linestyle='--', alpha=0.6)
@@ -218,41 +194,32 @@ def generate_svg_reports(stats, prob_name):
     # ==========================================
     try:
         fig, ax1 = plt.subplots(figsize=(10, 6))
-
-        # Extract both metrics
         avg_times = [np.mean(stats[algo]['time']) for algo in valid_labels]
         avg_memory = [np.mean(stats[algo]['memory']) for algo in valid_labels]
-
         x = np.arange(len(valid_labels))
-        width = 0.35  # Width of the bars
+        width = 0.35
 
-        # --- PRIMARY Y-AXIS (TIME) ---
         bars1 = ax1.bar(x - width / 2, avg_times, width, label='Time (ms)', color='skyblue')
         ax1.set_ylabel('Average Time (ms)', color='tab:blue', fontweight='bold')
         ax1.tick_params(axis='y', labelcolor='tab:blue')
 
-        # Add numbers on top of Time bars
         for bar in bars1:
             ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
                      f"{bar.get_height():.1f}", ha='center', va='bottom', color='tab:blue', fontsize=9)
 
-        # --- SECONDARY Y-AXIS (SPACE/MEMORY) ---
-        ax2 = ax1.twinx()  # This creates a second Y-axis sharing the same X-axis!
+        ax2 = ax1.twinx()
         bars2 = ax2.bar(x + width / 2, avg_memory, width, label='Memory (KB)', color='lightcoral')
         ax2.set_ylabel('Average Peak Memory (KB)', color='tab:red', fontweight='bold')
         ax2.tick_params(axis='y', labelcolor='tab:red')
 
-        # Add numbers on top of Memory bars
         for bar in bars2:
             ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
                      f"{bar.get_height():.1f}", ha='center', va='bottom', color='tab:red', fontsize=9)
 
-        # Add X-axis labels and Title
         ax1.set_xticks(x)
-        ax1.set_xticklabels(valid_labels)
+        ax1.set_xticklabels([l.upper() for l in valid_labels])
         plt.title(f"Empirical Time & Space Complexity - {prob_name.upper()}")
 
-        # Combine the legends from both axes
         lines1, labels1 = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
         ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
@@ -262,27 +229,18 @@ def generate_svg_reports(stats, prob_name):
         print(f" [!] Could not generate Complexity chart: {e}")
         plt.close()
 
-    # ==========================================
-    # ERROR (If Optimum is known)
-    # ==========================================
-    if prob_name.lower() in KNOWN_OPTIMUMS:
-        try:
-            plt.figure(figsize=(8, 6))
-            optimum = KNOWN_OPTIMUMS[prob_name.lower()]
-            errors = [np.mean(np.abs(np.array(stats[algo]['fitness']) - optimum)) for algo in valid_labels]
-            plt.bar(valid_labels, errors, color='salmon')
-            plt.title(f"Absolute Error from Optimum ({optimum}) - {prob_name.upper()}")
-            plt.ylabel("Mean Absolute Error")
-            save_plot("error_deviation")
-        except Exception as e:
-            print(f" [!] Could not generate Error chart: {e}")
-            plt.close()
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--problem", type=str, required=True, help="Problem to benchmark (e.g., sphere, maze, tsp)")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs for stochastic algorithms")
-    args = parser.parse_args()
+    parser.add_argument("--dim", type=int, default=10, help="Dimension for continuous problems")
+    parser.add_argument("--params", nargs='*', help="Algorithm parameters like iteration=500 limit=20")
 
-    run_benchmark(args.problem, args.runs)
+    args = parser.parse_args()
+    algo_params = parse_param_string(args.params)
+
+    print("\n========================================")
+    print("      AI SEARCH ALGORITHM BENCHMARK     ")
+    print("========================================")
+    run_benchmark(args.problem, runs=args.runs, dim=args.dim, algo_params=algo_params)

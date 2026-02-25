@@ -11,11 +11,13 @@ class HillClimbing(BaseAlgorithm):
         iteration: number of iterations
         """
         # parameter initialization
-        default_params = {"step": 0.99, "iteration": 600}
+        default_params = {"step": 0.5, "iteration": 300}
         if params:
             default_params.update(params)
-
         super().__init__("Hill Climbing", default_params)
+
+        for key, val in default_params.items():
+            setattr(self, key, val)
 
     def get_neighbor(self, cur_pos, lower, upper, cont_flag):
 

@@ -18,6 +18,8 @@ class SimulatedAnnealing(BaseAlgorithm):
             default_params.update(params)
         # Pass the merged dict to BaseAlgorithm
         super().__init__("Simulated Annealing", default_params)
+        for key, val in default_params.items():
+            setattr(self, key, val)
 
     def get_neighbor(self, cur_pos, lower, upper, cont_flag):
 

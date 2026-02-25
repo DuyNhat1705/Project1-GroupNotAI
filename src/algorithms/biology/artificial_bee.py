@@ -17,6 +17,8 @@ class ArtificialBee(BaseAlgorithm):
         # 3. Pass the merged dictionary to the BaseAlgorithm
         super().__init__("Artificial Bee Colony", default_params)
 
+        for key, val in default_params.items():
+            setattr(self, key, val)
 
     def calc_fitness(self, flag, cost):
         # flag = problem.cont_flag

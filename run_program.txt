@@ -21,3 +21,4 @@ python main.py --algo abc --problem rosenbrock
 Chạy file benchmark:
 python benchmark.py --problem maze
 python benchmark.py --problem sphere
+python benchmark.py --problem ackley --runs 1 --dim 30 --params iteration=1000 total_bee=100

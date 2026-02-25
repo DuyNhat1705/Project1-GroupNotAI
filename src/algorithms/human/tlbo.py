@@ -33,7 +33,7 @@ class TLBO(BaseAlgorithm):
                 best_fitness = fitness[best_idx]
 
                 X_mean = np.mean(population, axis=0)
-                r = np.random.rand(2)
+                r = np.random.rand(num_variables)
                 Tf = np.random.randint(1,3)
 
                 X_new = population[student] + r*(X_best - Tf*X_mean)
@@ -50,7 +50,7 @@ class TLBO(BaseAlgorithm):
 
                 X_partner = population[partner_idx]
                 partner_fitness = fitness[partner_idx]
-                r = np.random.rand(2)
+                r = np.random.rand(num_variables)
 
                 if fitness[student] < partner_fitness:
                     X_new = population[student] + r*(population[student]-X_partner)
