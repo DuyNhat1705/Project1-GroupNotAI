@@ -1,5 +1,4 @@
 import os
-import numpy as np
 from src.visualization.base_visualizer import BaseVisualizer
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation

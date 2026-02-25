@@ -8,7 +8,7 @@ import numpy as np
 class ACO(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
-            'num_ants': 10, 'iterations': 100, 'alpha': 1.0, 'beta': 2.0,
+            'pop_size': 10, 'num_iters': 100, 'alpha': 1.0, 'beta': 2.0,
             'evaporation': 0.5, 'Q': 100, 'archive_size': 50, 'xi': 0.85
         }
         if params:
@@ -59,7 +59,7 @@ class ACO(BaseAlgorithm):
         archive.sort(key=lambda x: x[1])
         best_solution, best_cost = archive[0][0].copy(), archive[0][1]
         
-        for iteration in range(self.iterations):
+        for num_iters in range(self.num_iters):
             # Calculate weights
             weights = [math.exp(-(r**2) / (2 * self.xi**2 * self.archive_size**2)) / 
                       (self.archive_size * self.xi * math.sqrt(2 * math.pi)) for r in range(len(archive))]
@@ -67,7 +67,7 @@ class ACO(BaseAlgorithm):
             weights = [w / total_w for w in weights] if total_w > 0 else [1.0 / len(archive)] * len(archive)
             
             new_solutions = []
-            for _ in range(self.num_ants):
+            for _ in range(self.pop_size):
                 new_sol = np.zeros(dims)
                 for d in range(dims):
                     idx = np.random.choice(len(archive), p=weights)
@@ -95,7 +95,7 @@ class ACO(BaseAlgorithm):
     
     def _solve_discrete(self, problem, seed):
         logger = Logger(self.name, run_id=seed)
-        logger.history["iteration_best"] = []
+        logger.history["num_iters_best"] = []
         
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
@@ -107,10 +107,10 @@ class ACO(BaseAlgorithm):
         pheromones = np.ones((n, n))
         best_tour, best_cost = None, float('inf')
         
-        for iteration in range(self.iterations):
+        for iteration in range(self.num_iters):
             tours, costs = [], []
             
-            for _ in range(self.num_ants):
+            for _ in range(self.pop_size):
                 # Construct tour
                 current = random.randint(0, n - 1)
                 tour, unvisited = [current], set(range(n)) - {current}

@@ -8,7 +8,7 @@ class GeneticAlgorithm(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
             "pop_size": 50,
-            "generations": 100,
+            "num_iters": 100,
             "F": 0.5,
             "CR": 0.1,
         }
@@ -89,7 +89,7 @@ class GeneticAlgorithm(BaseAlgorithm):
             random.seed(seed)
 
         pop_size = self.params["pop_size"]
-        n_gens = self.params["generations"]
+        n_gens = self.params["num_iters"]
         dim = problem.dimension
 
         # Logger
@@ -184,7 +184,7 @@ class GeneticAlgorithm(BaseAlgorithm):
         dim = problem.dimension
         bounds = problem.bounds
         pop_size = self.params["pop_size"]
-        n_gens = self.params["generations"]
+        n_gens = self.params["num_iters"]
         
         # Khởi tạo quần thể
         lower = np.array([b[0] for b in bounds])

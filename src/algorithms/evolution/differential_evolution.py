@@ -6,7 +6,7 @@ class DifferentialEvolution(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
             "pop_size": 50,
-            "generations": 100,
+            "num_iters": 100,
             "F": 0.8,   # Differential Weight
             "CR": 0.9,  # Crossover Probability
         }
@@ -66,7 +66,7 @@ class DifferentialEvolution(BaseAlgorithm):
         dim = problem.dimension
         bounds = problem.bounds
         pop_size = self.params["pop_size"]
-        max_gens = self.params["generations"]
+        max_gens = self.params["num_iters"]
 
         # Bounds arrays
         lower = np.array([b[0] for b in bounds])

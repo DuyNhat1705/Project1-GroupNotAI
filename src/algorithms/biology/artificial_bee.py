@@ -7,14 +7,13 @@ from src.problems.base_problem import BaseProblem
 class ArtificialBee(BaseAlgorithm):
 
     def __init__(self, params=None):
-        # 1. Define the safe default parameters using UNDERSCORES consistently
-        default_params = {"total_bee": 50, "iteration": 100, "limit": 20}
+        default_params = {"pop_size": 50, "num_iters": 100, "limit": 20}
 
-        # 2. If the user passed anything, update the defaults with their values
+        # If passed anything, update the defaults with their values
         if params:
             default_params.update(params)
 
-        # 3. Pass the merged dictionary to the BaseAlgorithm
+        # Pass the merged dictionary to the BaseAlgorithm
         super().__init__("Artificial Bee Colony", default_params)
 
         for key, val in default_params.items():
@@ -60,9 +59,9 @@ class ArtificialBee(BaseAlgorithm):
 
         # --- Initialization ---
 
-        # divide total_bees into employed and unemployed
-        employed = self.params["total_bee"] // 2
-        onlooker = self.params["total_bee"] - employed
+        # divide pop_sizes into employed and unemployed
+        employed = self.params["pop_size"] // 2
+        onlooker = self.params["pop_size"] - employed
         limit = self.params["limit"]  # if trial count excesses this limit, reset the food source
         dim = problem.dimension
         flag = problem.cont_flag
@@ -103,7 +102,7 @@ class ArtificialBee(BaseAlgorithm):
         logger.history["avg_cost"] = []
 
         # --- Main Loop ---
-        for it in range(self.params["iteration"]):
+        for it in range(self.params["num_iters"]):
 
             # --- Employed Bees ---
             for j in range(employed):

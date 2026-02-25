@@ -4,6 +4,7 @@ import tracemalloc
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+import json
 import threading
 import _thread
 
@@ -116,27 +117,64 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
                 print(f"\n  [ERROR] Run {i + 1} failed: {e}")
                 break
 
-    generate_svg_reports(stats, prob_name, optimum)
+    generate_reports(stats, prob_name, dim, optimum)
 
 
-def generate_svg_reports(stats, prob_name, optimum=None):
-    os.makedirs("output", exist_ok=True)
+def generate_reports(stats, prob_name, dim, optimum=None):
+    # THE FIX: Create a dedicated subfolder for the specific problem
+    out_dir = f"output/{prob_name.lower()}"
+    os.makedirs(out_dir, exist_ok=True)
+
     valid_labels = [algo for algo in stats.keys() if len(stats[algo]['fitness']) > 0]
 
     if not valid_labels:
         print(f"\n[WARNING] No algorithms successfully solved {prob_name}. Skipping charts.")
         return
 
-    def save_plot(suffix):
-        plt.tight_layout()
-        filepath = f"output/{prob_name}_{suffix}.svg"
-        plt.savefig(filepath, format="svg")
-        plt.close()
-        print(f"Saved: {filepath}")
+    # ==========================================
+    # 1. JSON DATA EXPORT
+    # ==========================================
+    report_data = {}
+    for algo in valid_labels:
+        fit_arr = np.array(stats[algo]['fitness'])
+        time_arr = np.array(stats[algo]['time'])
+        mem_arr = np.array(stats[algo]['memory'])
+
+        report_data[algo] = {
+            "fitness": {
+                "best": float(np.min(fit_arr)),
+                "worst": float(np.max(fit_arr)),
+                "mean": float(np.mean(fit_arr)),
+                "median": float(np.median(fit_arr)),
+                "std": float(np.std(fit_arr))
+            },
+            "time_ms": {
+                "mean": float(np.mean(time_arr)),
+                "std": float(np.std(time_arr))
+            },
+            "memory_kb": {
+                "mean": float(np.mean(mem_arr)),
+                "std": float(np.std(mem_arr))
+            }
+        }
+
+    # THE FIX: Save JSON into the new subfolder
+    json_path = f"{out_dir}/{prob_name}_report.json"
+    with open(json_path, "w") as f:
+        json.dump(report_data, f, indent=4)
+    print(f"\n[+] Saved JSON Statistics: {json_path}")
 
     # ==========================================
-    # CONVERGENCE (Line Plot)
+    # 2. PDF CHARTS
     # ==========================================
+    def save_plot(suffix):
+        filepath = f"{out_dir}/{prob_name}_{suffix}.pdf"
+        # THE FIX: bbox_inches='tight' guarantees external legends aren't cropped out!
+        plt.savefig(filepath, format="pdf", bbox_inches="tight")
+        plt.close()
+        print(f"[+] Saved PDF Chart: {filepath}")
+
+    # --- CONVERGENCE (Line Plot) ---
     try:
         plt.figure(figsize=(8, 6))
         for algo in valid_labels:
@@ -147,41 +185,41 @@ def generate_svg_reports(stats, prob_name, optimum=None):
                 max_len = max(len(c) for c in curves)
                 padded = [c + [c[-1]] * (max_len - len(c)) for c in curves]
 
-                # THE FIX: Calculate Mean and Standard Deviation for the shaded area
                 mean_curve = np.mean(padded, axis=0)
                 std_curve = np.std(padded, axis=0)
-                x_axis = np.arange(len(mean_curve))
+                x_axis = np.arange(1, len(mean_curve) + 1)
 
-                # Plot the solid mean line and capture its color
                 line, = plt.plot(x_axis, mean_curve, label=algo.upper(), linewidth=2)
-
-                # Add the semi-transparent shaded standard deviation
                 plt.fill_between(x_axis, mean_curve - std_curve, mean_curve + std_curve,
                                  color=line.get_color(), alpha=0.15)
 
         if optimum is not None:
             plt.axhline(y=optimum, color='black', linestyle='--', linewidth=1.5, label=f"True Optimum ({optimum})")
 
-        plt.title(f"Convergence (Mean ± Std) - {prob_name.upper()}")
+        # THE FIX: Added Dimension to Title
+        plt.title(f"Convergence (Mean ± Std) - {prob_name.upper()} (Dim: {dim})")
         plt.xlabel("Iterations")
         plt.ylabel("Score")
+
         if plt.gca().get_legend_handles_labels()[0]:
-            plt.legend()
+            # THE FIX: Moved legend completely outside the chart area
+            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+
         plt.grid(True, linestyle='--', alpha=0.6)
         save_plot("convergence")
     except Exception as e:
         print(f" [!] Could not generate Convergence chart: {e}")
         plt.close()
 
-    # ==========================================
-    # ROBUSTNESS (Boxplot)
-    # ==========================================
+    # --- ROBUSTNESS (Boxplot) ---
     try:
         plt.figure(figsize=(8, 6))
         fitness_data = [stats[algo]['fitness'] for algo in valid_labels]
         plt.boxplot(fitness_data, patch_artist=True)
         plt.xticks(ticks=range(1, len(valid_labels) + 1), labels=[l.upper() for l in valid_labels])
-        plt.title(f"Robustness (Score Distribution) - {prob_name.upper()}")
+
+        # THE FIX: Added Dimension to Title
+        plt.title(f"Robustness (Score Distribution) - {prob_name.upper()} (Dim: {dim})")
         plt.ylabel("Final Score Found")
         plt.grid(True, linestyle='--', alpha=0.6)
         save_plot("robustness")
@@ -189,40 +227,40 @@ def generate_svg_reports(stats, prob_name, optimum=None):
         print(f" [!] Could not generate Robustness chart: {e}")
         plt.close()
 
-    # ==========================================
-    # TIME & SPACE COMPLEXITY (Bar Chart)
-    # ==========================================
+    # --- TIME & SPACE COMPLEXITY (Bar Chart with Error Bars) ---
     try:
         fig, ax1 = plt.subplots(figsize=(10, 6))
         avg_times = [np.mean(stats[algo]['time']) for algo in valid_labels]
+        std_times = [np.std(stats[algo]['time']) for algo in valid_labels]  # THE FIX: Calc Time Std Dev
+
         avg_memory = [np.mean(stats[algo]['memory']) for algo in valid_labels]
+        std_memory = [np.std(stats[algo]['memory']) for algo in valid_labels]  # THE FIX: Calc Memory Std Dev
+
         x = np.arange(len(valid_labels))
         width = 0.35
 
-        bars1 = ax1.bar(x - width / 2, avg_times, width, label='Time (ms)', color='skyblue')
+        # THE FIX: Added yerr and capsize to show the variance safely
+        bars1 = ax1.bar(x - width / 2, avg_times, width, yerr=std_times, capsize=5, label='Time (ms)', color='skyblue')
         ax1.set_ylabel('Average Time (ms)', color='tab:blue', fontweight='bold')
         ax1.tick_params(axis='y', labelcolor='tab:blue')
 
-        for bar in bars1:
-            ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                     f"{bar.get_height():.1f}", ha='center', va='bottom', color='tab:blue', fontsize=9)
-
         ax2 = ax1.twinx()
-        bars2 = ax2.bar(x + width / 2, avg_memory, width, label='Memory (KB)', color='lightcoral')
+        bars2 = ax2.bar(x + width / 2, avg_memory, width, yerr=std_memory, capsize=5, label='Memory (KB)',
+                        color='lightcoral')
         ax2.set_ylabel('Average Peak Memory (KB)', color='tab:red', fontweight='bold')
         ax2.tick_params(axis='y', labelcolor='tab:red')
 
-        for bar in bars2:
-            ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                     f"{bar.get_height():.1f}", ha='center', va='bottom', color='tab:red', fontsize=9)
-
         ax1.set_xticks(x)
         ax1.set_xticklabels([l.upper() for l in valid_labels])
-        plt.title(f"Empirical Time & Space Complexity - {prob_name.upper()}")
+
+        # THE FIX: Added Dimension to Title
+        plt.title(f"Empirical Time & Space Complexity - {prob_name.upper()} (Dim: {dim})")
 
         lines1, labels1 = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
-        ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
+
+        # THE FIX: Moved complexity legend outside the chart
+        ax1.legend(lines1 + lines2, labels1 + labels2, bbox_to_anchor=(1.10, 1), loc='upper left')
 
         save_plot("complexity")
     except Exception as e:

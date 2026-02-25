@@ -7,7 +7,7 @@ import random
 class PSO(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
-            'swarm_size': 30, 'iterations': 100,
+            'pop_size': 30, 'num_iters': 100,
             'w_max': 0.9, 'w_min': 0.4,
             'c1': 2.05, 'c2': 2.05
         }
@@ -49,20 +49,20 @@ class PSO(BaseAlgorithm):
         else:
             lb, ub = 0, 2
         
-        positions = np.random.uniform(lb, ub, (self.swarm_size, dims)) if flag else \
-                    np.random.randint(0, 2, (self.swarm_size, dims)).astype(float)
-        velocities = np.random.uniform(-1, 1, (self.swarm_size, dims))
+        positions = np.random.uniform(lb, ub, (self.pop_size, dims)) if flag else \
+                    np.random.randint(0, 2, (self.pop_size, dims)).astype(float)
+        velocities = np.random.uniform(-1, 1, (self.pop_size, dims))
         
         pbest_pos = positions.copy()
         pbest_cost = np.array([problem.evaluate(p) for p in positions])
         gbest_idx = np.argmin(pbest_cost) if flag else np.argmax(pbest_cost)
         gbest_pos, gbest_cost = pbest_pos[gbest_idx].copy(), pbest_cost[gbest_idx]
         
-        for iteration in range(self.iterations):
-            w = self.w_max - (self.w_max - self.w_min) * iteration / (self.iterations - 1)
+        for iteration in range(self.num_iters):
+            w = self.w_max - (self.w_max - self.w_min) * iteration / (self.num_iters - 1)
             iter_costs = []
             
-            for i in range(self.swarm_size):
+            for i in range(self.pop_size):
                 r1, r2 = np.random.random(dims), np.random.random(dims)
                 velocities[i] = w * velocities[i] + self.c1 * r1 * (pbest_pos[i] - positions[i]) + \
                                 self.c2 * r2 * (gbest_pos - positions[i])
@@ -102,8 +102,8 @@ class PSO(BaseAlgorithm):
         logger.history["iteration_best"] = []
         
         n = problem.dimension
-        positions = np.random.uniform(0, 1, (self.swarm_size, n))
-        velocities = np.random.uniform(-1, 1, (self.swarm_size, n))
+        positions = np.random.uniform(0, 1, (self.pop_size, n))
+        velocities = np.random.uniform(-1, 1, (self.pop_size, n))
         
         def pos_to_tour(pos):
             return np.argsort(pos)
@@ -117,10 +117,10 @@ class PSO(BaseAlgorithm):
         gbest_pos = positions[gbest_idx].copy()
         gbest_cost = costs[gbest_idx]
         
-        for iteration in range(self.iterations):
-            w = self.w_max - (self.w_max - self.w_min) * iteration / (self.iterations - 1)
+        for iteration in range(self.num_iters):
+            w = self.w_max - (self.w_max - self.w_min) * iteration / (self.num_iters - 1)
             
-            for i in range(self.swarm_size):
+            for i in range(self.pop_size):
                 r1, r2 = np.random.random(n), np.random.random(n)
                 velocities[i] = w * velocities[i] + self.c1 * r1 * (pbest_pos[i] - positions[i]) + \
                                 self.c2 * r2 * (gbest_pos - positions[i])
