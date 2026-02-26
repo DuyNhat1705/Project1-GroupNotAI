@@ -30,11 +30,11 @@ def timeout_handler(flag):
 
 def determine_category(prob_name):
     prob = prob_name.lower()
-    if prob in ["tsp", "travelsalesman"]: return "tsp"
-    if prob in ["maze", "shortestpathonmaze"]: return "maze"
-    if prob in ["knapsack"]: return "knapsack"
+    if prob in ["tsp1"]: return "tsp"
+    if prob in ["maze1", "maze2"]: return "maze"
+    if prob in ["knapsack1"]: return "knapsack"
     if prob in ["graph", "shortestpathongraph"]: return "graph"
-    if prob in ["graphcoloring"]: return "graphcoloring"
+    if prob in ["coloring1"]: return "graphcoloring"
     return "continuous"
 
 def extract_convergence(logger):
@@ -116,11 +116,11 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
                 print(f"\n  [ERROR] Run {i + 1} failed: {e}")
                 break
 
-    generate_reports(stats, prob_name, dim, optimum)
+    generate_reports(stats, prob_name, optimum)
 
 
-def generate_reports(stats, prob_name, dim, optimum=None):
-    # THE FIX: Create a dedicated subfolder for the specific problem
+def generate_reports(stats, prob_name, optimum=None):
+    # Create a subfolder for each problem
     out_dir = f"output/{prob_name.lower()}"
     os.makedirs(out_dir, exist_ok=True)
 
@@ -168,7 +168,7 @@ def generate_reports(stats, prob_name, dim, optimum=None):
     # ==========================================
     def save_plot(suffix):
         filepath = f"{out_dir}/{prob_name}_{suffix}.pdf"
-        # THE FIX: bbox_inches='tight' guarantees external legends aren't cropped out!
+        # bbox_inches='tight' guarantees external legends aren't cropped out
         plt.savefig(filepath, format="pdf", bbox_inches="tight")
         plt.close()
         print(f"[+] Saved PDF Chart: {filepath}")
@@ -197,8 +197,7 @@ def generate_reports(stats, prob_name, dim, optimum=None):
 
         plt.yscale("symlog", linthresh=1e-3)
 
-        # THE FIX: Added Dimension to Title
-        plt.title(f"Convergence - {prob_name.upper()} (Dim: {dim})")
+        plt.title(f"Convergence - {prob_name.upper()}")
         plt.xlabel("Iterations")
         plt.ylabel("Objective value")
 
@@ -220,7 +219,7 @@ def generate_reports(stats, prob_name, dim, optimum=None):
         plt.xticks(ticks=range(1, len(valid_labels) + 1), labels=[l.upper() for l in valid_labels])
 
         # THE FIX: Added Dimension to Title
-        plt.title(f"Robustness - {prob_name.upper()} (Dim: {dim})")
+        plt.title(f"Robustness - {prob_name.upper()}")
         plt.ylabel("Best Fitness")
         plt.grid(True, linestyle='--', alpha=0.6)
         save_plot("robustness")
@@ -228,39 +227,49 @@ def generate_reports(stats, prob_name, dim, optimum=None):
         print(f" [!] Could not generate Robustness chart: {e}")
         plt.close()
 
-    # --- TIME & SPACE COMPLEXITY (Bar Chart with Error Bars) ---
+    # --- TIME & SPACE COMPLEXITY (Bar Chart) ---
     try:
         fig, ax1 = plt.subplots(figsize=(10, 6))
         avg_times = [np.mean(stats[algo]['time']) for algo in valid_labels]
-        std_times = [np.std(stats[algo]['time']) for algo in valid_labels]  # THE FIX: Calc Time Std Dev
+        std_times = [np.std(stats[algo]['time']) for algo in valid_labels]  #Calc Time Std Dev
 
         avg_memory = [np.mean(stats[algo]['memory']) for algo in valid_labels]
-        std_memory = [np.std(stats[algo]['memory']) for algo in valid_labels]  # THE FIX: Calc Memory Std Dev
+        std_memory = [np.std(stats[algo]['memory']) for algo in valid_labels]  # Calc Memory Std Dev
 
         x = np.arange(len(valid_labels))
         width = 0.35
 
-        # THE FIX: Added yerr and capsize to show the variance safely
+        # yerr and capsize to show the variance safely
         bars1 = ax1.bar(x - width / 2, avg_times, width, yerr=std_times, capsize=5, label='Time (ms)', color='skyblue')
+
+        for i, bar in enumerate(bars1):
+            yval = bar.get_height() + std_times[i]
+            ax1.text(bar.get_x() + bar.get_width() / 2, yval, f"{bar.get_height():.1f}",
+                     ha='center', va='bottom', color='tab:blue', fontsize=9)
+
         ax1.set_ylabel('Average Time (ms)', color='tab:blue', fontweight='bold')
         ax1.tick_params(axis='y', labelcolor='tab:blue')
 
         ax2 = ax1.twinx()
         bars2 = ax2.bar(x + width / 2, avg_memory, width, yerr=std_memory, capsize=5, label='Memory (KB)',
                         color='lightcoral')
+
+        for i, bar in enumerate(bars2):
+            yval = bar.get_height() + std_memory[i]
+            ax2.text(bar.get_x() + bar.get_width() / 2, yval, f"{bar.get_height():.1f}",
+                     ha='center', va='bottom', color='tab:red', fontsize=9)
+
         ax2.set_ylabel('Average Peak Memory (KB)', color='tab:red', fontweight='bold')
         ax2.tick_params(axis='y', labelcolor='tab:red')
 
         ax1.set_xticks(x)
         ax1.set_xticklabels([l.upper() for l in valid_labels])
 
-        # THE FIX: Added Dimension to Title
-        plt.title(f"Time & Space Complexity - {prob_name.upper()} (Dim: {dim})")
+        plt.title(f"Time & Space Complexity - {prob_name.upper()}")
 
         lines1, labels1 = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
 
-        # THE FIX: Moved complexity legend outside the chart
         ax1.legend(lines1 + lines2, labels1 + labels2, bbox_to_anchor=(1.10, 1), loc='upper left')
 
         save_plot("complexity")

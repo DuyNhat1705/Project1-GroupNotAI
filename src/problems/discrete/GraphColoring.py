@@ -23,6 +23,9 @@ class GraphColoring(BaseProblem):
         # Bounds = [0, num_nodes - 1]
         super().__init__(name, dimension=self.num_nodes, bounds=[0, self.num_nodes - 1], cont_flag=False)
 
+    def getName(self):
+        return self.name
+
     def load_from_file(self, filename):
         with open(filename, "r") as file:
             lines = [line.strip() for line in file.readlines() if line.strip() and not line.strip().startswith('#')]
