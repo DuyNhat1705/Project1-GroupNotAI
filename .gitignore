@@ -218,3 +218,5 @@ __marimo__/
 # Output video
 *.mp4
 *.svg
+output/
+
