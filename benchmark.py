@@ -176,19 +176,29 @@ def generate_reports(stats, prob_name, optimum=None):
     # --- CONVERGENCE (Line Plot) ---
     try:
         plt.figure(figsize=(8, 6))
-        for algo in valid_labels:
+        line_styles = ['-', '--', '-.', ':']
+
+        for idx, algo in enumerate(valid_labels):
             curves = [c for c in stats[algo]['convergence'] if c]
             if curves:
                 if not isinstance(curves[0][0], (int, float, np.floating, np.integer)):
                     continue
+
+                # Safety padding: just in case one run of this specific algo stops early
                 max_len = max(len(c) for c in curves)
                 padded = [c + [c[-1]] * (max_len - len(c)) for c in curves]
 
                 mean_curve = np.mean(padded, axis=0)
                 std_curve = np.std(padded, axis=0)
+
+                # X-axis starts at 1
                 x_axis = np.arange(1, len(mean_curve) + 1)
 
-                line, = plt.plot(x_axis, mean_curve, label=algo.upper(), linewidth=2)
+                # Pick a style based on the algorithm's index
+                style = line_styles[idx % len(line_styles)]
+
+                # Plot with linestyle and alpha=0.8
+                line, = plt.plot(x_axis, mean_curve, label=algo.upper(), linewidth=2, linestyle=style, alpha=0.8)
                 plt.fill_between(x_axis, mean_curve - std_curve, mean_curve + std_curve,
                                  color=line.get_color(), alpha=0.15)
 
