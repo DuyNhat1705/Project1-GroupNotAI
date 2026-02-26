@@ -23,7 +23,8 @@ def main():
         viz_data = {
             "problem": problem,
             "algorithm": algorithm.name,
-            "result": raw_output["result"]
+            "result": raw_output["result"],
+            "context": args.problem
         }
         visualizer = get_visualizer(viz_data)
         # In thời gian thực thi ngay sau khi solve xong

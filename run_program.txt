@@ -1,16 +1,24 @@
-Chạy file main: 
+Chạy file main:
+Discrete:
+python main.py --algo tlbo --problem knapsack1 --params pop_size=30 num_iters=100
+python main.py --algo cs --problem knapsack1 --params pop_size=25 num_iters=100
+python main.py --algo abc --problem knapsack1
+
+python main.py --algo BFS --problem graph1
+python main.py --algo DFS --problem graph1
+
+python main.py --algo astar --problem maze1
+python main.py --algo astar --problem maze2
+
+python main.py --algo sa --problem tsp1
+python main.py --algo hc --problem tsp1
+python main.py --algo ga --problem tsp1
+
+Continuous:
 python main.py --algo ga --problem sphere --params pop_size=500
 python main.py --algo tlbo --problem sphere --params pop_size=50 num_iters=90
-python main.py --algo tlbo --problem knapsack --params pop_size=30 num_iters=100
 python main.py --algo cs --problem sphere --params pop_size=50 num_iters=100
-python main.py --algo cs --problem knapsack --params pop_size=25 num_iters=100
-python main.py --algo BFS --problem graph
-python main.py --algo DFS --problem graph
-python main.py --algo astar --problem maze
-python main.py --algo abc --problem knapsack
-python main.py --algo sa --problem tsp
 python main.py --algo sa --problem sphere
-python main.py --algo hc --problem tsp
 python main.py --algo hc --problem sphere
 python main.py --algo abc --problem griewank
 python main.py --algo abc --problem michalewicz

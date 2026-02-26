@@ -48,7 +48,8 @@ def get_visualizer(params):
                 print(f"  -> Done. Cost: {result.get('cost', 'N/A')}")
                 history = result.get("logger", None).history.get("visited_edges", [])
                 path = result.get("path", [])
-                title = params.get("algorithm") + " on Graph"
+                num = params.get("context", "graph1")[5:]
+                title = params.get("algorithm") + " on Graph " + num
                 return GraphVisualizer(problem, history, path, title)
                 
             case "ShortestPathOnMaze":
@@ -56,21 +57,24 @@ def get_visualizer(params):
                 logger = result.get("logger")
                 history = logger.history.get("visited_edges", [])
                 path = result.get("path", [])
-                title = params.get("algorithm") + " on Maze"
+                num = params.get("context", "maze1")[4:]
+                title = params.get("algorithm") + " on Maze " + num
                 return MazeVisualizer(problem, history, path, title)
             
             case "Knapsack Problem":
                 print(f"  -> Done. Best Fitness: {result.get('best_fitness', None)}")
                 history = result.get("logger").history.get("current_best", [])
-                title = params.get("algorithm") + " on Knapsack"
+                num = params.get("context", "knapsack1")[8:]
+                title = params.get("algorithm") + " on Knapsack " + num
                 return KnapsackVisualizer(problem, history, path=None, title=title)
 
             case "TSP":
+                print(f"  -> Done. Best Fitness: {result.get('best_fitness', None)}")
                 logger = result.get("logger")
                 history = logger.history.get("population", [])
-
+                num = params.get("context", "tsp1")[3:]
                 algo_name = params.get("algorithm", "").lower()
-                title = params.get("algorithm", "Unknown Algo") + " on TSP"
+                title = params.get("algorithm", "Unknown Algo") + " on TSP " + num
 
                 if "genetic" in algo_name or "ga" in algo_name:
                     return TSPGAVisualizer(
@@ -90,7 +94,8 @@ def get_visualizer(params):
             case "Graph Coloring":
                 logger = result.get("logger")
                 history = result.get("logger").history.get("current_best", [])
-                title = params.get("algorithm") + " on Graph Coloring"
+                num = params.get("context", "coloring1")[8:]
+                title = params.get("algorithm") + " on Graph Coloring " + num
                 return GraphColoringVisualizer(problem, history, path=None, title=title)
 
             case _:

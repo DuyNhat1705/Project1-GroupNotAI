@@ -4,13 +4,13 @@ from src.problems.base_problem import BaseProblem
 
 
 class GraphColoring(BaseProblem):
-    def __init__(self, filename="graph.txt", name="Graph Coloring"):
+    def __init__(self, context = "coloring1", name="Graph Coloring"):
         self.num_nodes = 0
         self.num_edges = 0
         self.edges = []
         self.node_coords = {}  # later use coordinates for Matplotlib
 
-        self.filepath = os.path.join(BaseProblem.project_root, 'data', filename)
+        self.filepath = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
         self.load_from_file(self.filepath) # take test case from data
 
         #  circular layout for the nodes
