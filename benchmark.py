@@ -18,7 +18,7 @@ COMPATIBILITY = {
     "continuous": ["abc", "sa", "hc", "pso", "cs", "fa", "aco", "ga", "de", "tlbo"],
     "tsp": ["sa", "hc", "pso", "fa", "aco", "ga"],
     "maze": ["astar", "bfs", "dfs"],
-    "knapsack": ["abc", "bfs", "pso", "fa","cs", "tlbo"],
+    "knapsack": ["abc", "bfs", "cs", "tlbo"],
     "graphcoloring": ["bfs", "dfs"]
 }
 
