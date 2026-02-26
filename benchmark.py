@@ -195,10 +195,12 @@ def generate_reports(stats, prob_name, dim, optimum=None):
         if optimum is not None:
             plt.axhline(y=optimum, color='black', linestyle='--', linewidth=1.5, label=f"True Optimum ({optimum})")
 
+        plt.yscale("symlog", linthresh=1e-3)
+
         # THE FIX: Added Dimension to Title
-        plt.title(f"Convergence (Mean ± Std) - {prob_name.upper()} (Dim: {dim})")
+        plt.title(f"Convergence - {prob_name.upper()} (Dim: {dim})")
         plt.xlabel("Iterations")
-        plt.ylabel("Score")
+        plt.ylabel("Objective value")
 
         if plt.gca().get_legend_handles_labels()[0]:
             # THE FIX: Moved legend completely outside the chart area
@@ -218,8 +220,8 @@ def generate_reports(stats, prob_name, dim, optimum=None):
         plt.xticks(ticks=range(1, len(valid_labels) + 1), labels=[l.upper() for l in valid_labels])
 
         # THE FIX: Added Dimension to Title
-        plt.title(f"Robustness (Score Distribution) - {prob_name.upper()} (Dim: {dim})")
-        plt.ylabel("Final Score Found")
+        plt.title(f"Robustness - {prob_name.upper()} (Dim: {dim})")
+        plt.ylabel("Best Fitness")
         plt.grid(True, linestyle='--', alpha=0.6)
         save_plot("robustness")
     except Exception as e:
@@ -253,7 +255,7 @@ def generate_reports(stats, prob_name, dim, optimum=None):
         ax1.set_xticklabels([l.upper() for l in valid_labels])
 
         # THE FIX: Added Dimension to Title
-        plt.title(f"Empirical Time & Space Complexity - {prob_name.upper()} (Dim: {dim})")
+        plt.title(f"Time & Space Complexity - {prob_name.upper()} (Dim: {dim})")
 
         lines1, labels1 = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
