@@ -5,12 +5,12 @@ import numpy as np
 class TLBO(BaseAlgorithm):
     def __init__(self, params = None):
         super().__init__("TLBO",params)
-        """params (dictionary) contains: population_size, num_num_iters, num_variables, lb, ub """
+        """params (dictionary) contains: population_size, num_iters, num_variables, lb, ub """
     
     def solveContinuous(self, problem, seed=None):
         # Minimize fitness
         population_size = self.params.get("pop_size", 50)
-        num_num_iters = self.params.get("num_iters", 100)
+        num_iters = self.params.get("num_iters", 100)
         lb = problem.min_range
         ub = problem.max_range
         num_variables = problem.dimension
@@ -21,11 +21,9 @@ class TLBO(BaseAlgorithm):
         # Initialize randomly for each student in population
         population = np.random.uniform(lb, ub, size=(population_size, num_variables))
         fitness = np.array([problem.evaluate(ind) for ind in population])
-        # logger.log("population", population.copy())
-        # logger.log("best_fitness", np.min(fitness))
 
         # Find the best solution for the 1st teacher phase
-        for iteration in range(num_num_iters):
+        for iteration in range(num_iters):
             for student in range(population_size):
                 #Teacher phase
                 best_idx = np.argmin(fitness)
@@ -110,9 +108,6 @@ class TLBO(BaseAlgorithm):
             binary_pop[i] = bin_sol.copy()
             fitness[i] = problem.evaluate(bin_sol)
         
-        best_idx = np.argmax(fitness)
-        logger.log("best_fitness",fitness[best_idx])
-        logger.log("current_best", binary_pop[best_idx].copy())
         # Main Loop
         for iter in range (num_iters):
             for student in range(n):

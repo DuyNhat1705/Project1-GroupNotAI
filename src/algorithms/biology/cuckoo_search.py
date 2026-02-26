@@ -101,8 +101,6 @@ class CS(BaseAlgorithm):
         fitness = np.ones(n) * 1e10
 
         fmin, bestnest, nest, fitness = self.get_best_nest(nest, nest, fitness,problem)
-        # logger.log("best_fitness", fmin)
-        # logger.log("population", nest.copy())
 
         for i in range(num_iters):
 
@@ -173,8 +171,6 @@ class CS(BaseAlgorithm):
         fmax = fitness[best_idx]
         best_binary = binary_pop[best_idx].copy()
 
-        logger.log("current_best", best_binary)
-        logger.log("best_fitness", fmax)
 
         for i in range(num_iters):
             # Levy flight
