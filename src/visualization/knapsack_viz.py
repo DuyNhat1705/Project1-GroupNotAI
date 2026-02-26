@@ -29,7 +29,7 @@ class KnapsackVisualizer(BaseVisualizer):
             self.best_values.append(current_max)
 
     def animate(self):
-        print(f"Visualization: {len(self.history)} iterations...")
+        print(f"Visualization: {len(self.history)} num_iters...")
 
         if not self.history:
             print("ERROR: Nothing to animate!")
@@ -105,7 +105,7 @@ class KnapsackVisualizer(BaseVisualizer):
             ax2.set_xlim(0, len(self.history))
             ax2.set_ylim(0, max(max(self.best_values) * 1.1, 10))
             ax2.set_title("Total Max Value Over Time", fontsize=14)
-            ax2.set_xlabel("Iterations (Max Loops)", fontsize=12)
+            ax2.set_xlabel("num_iters (Max Loops)", fontsize=12)
             ax2.set_ylabel("Best Value Found", fontsize=12)
             ax2.grid(True, linestyle='--', alpha=0.7)
 

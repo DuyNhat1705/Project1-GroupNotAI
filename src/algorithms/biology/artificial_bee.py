@@ -7,29 +7,28 @@ from src.problems.base_problem import BaseProblem
 class ArtificialBee(BaseAlgorithm):
 
     def __init__(self, params=None):
-        # 1. Define the safe default parameters using UNDERSCORES consistently
-        default_params = {"total_bee": 50, "iteration": 100, "limit": 20}
+        default_params = {"pop_size": 50, "num_iters": 100, "limit": 20}
 
-        # 2. If the user passed anything, update the defaults with their values
+        # If passed anything, update the defaults with their values
         if params:
             default_params.update(params)
 
-        # 3. Pass the merged dictionary to the BaseAlgorithm
+        # Pass the merged dictionary to the BaseAlgorithm
         super().__init__("Artificial Bee Colony", default_params)
 
         for key, val in default_params.items():
             setattr(self, key, val)
 
-    def calc_fitness(self, flag, cost):
+    def calc_score(self, flag, fitness):
         # flag = problem.cont_flag
-        # Fitness conversion for minimization
+        # score conversion for minimization
         if flag: # continuous case: as standard
-            if cost >= 0:
-                return 1 / (cost + 1)
+            if fitness >= 0:
+                return 1 / (fitness + 1)
             else:
-                return 1 + np.abs(cost)
+                return 1 + np.abs(fitness)
         else:
-            return cost # return the value of knapsack
+            return fitness # return the value of knapsack
 
 
     def helper_cand_gen(self, dim, cur, partner, flag, lower, upper):
@@ -60,9 +59,9 @@ class ArtificialBee(BaseAlgorithm):
 
         # --- Initialization ---
 
-        # divide total_bees into employed and unemployed
-        employed = self.params["total_bee"] // 2
-        onlooker = self.params["total_bee"] - employed
+        # divide pop_sizes into employed and unemployed
+        employed = self.params["pop_size"] // 2
+        onlooker = self.params["pop_size"] - employed
         limit = self.params["limit"]  # if trial count excesses this limit, reset the food source
         dim = problem.dimension
         flag = problem.cont_flag
@@ -80,30 +79,30 @@ class ArtificialBee(BaseAlgorithm):
             #food_source_arr = np.random.randint(lower_bound, upper_bound, (employed, problem.dimension)) # rand int 0, 1
             food_source_arr = (np.random.rand(employed, dim) < 0.05).astype(int)
 
-        cost_arr = np.array([problem.evaluate(i) for i in food_source_arr]) # evaluate cost for each food source
-        fitness_arr = np.array([self.calc_fitness(flag, np.array([c])) for c in cost_arr]) # calculate fitness for each cost
+        fitness_arr = np.array([problem.evaluate(i) for i in food_source_arr]) # evaluate fitness for each food source
+        score_arr = np.array([self.calc_score(flag, np.array([c])) for c in fitness_arr]) # calculate score for each fitness
 
         trial_cnt_arr = np.zeros(employed) # count trial for each employed bee
 
         # Track Global Best
         if flag:
-            # Continuous: Minimization (Smallest Cost)
-            best_idx = np.argmin(cost_arr)
+            # Continuous: Minimization (Smallest fitness)
+            best_idx = np.argmin(fitness_arr)
         else:
             # Discrete: Maximization (Largest Value)
-            best_idx = np.argmax(cost_arr)
+            best_idx = np.argmax(fitness_arr)
 
         best_solution = food_source_arr[best_idx].copy()
-        best_cost = cost_arr[best_idx]
+        best_fitness = fitness_arr[best_idx]
 
         logger = Logger(self.name, run_id=seed)
         logger.history["current_best"] = []
-        logger.history["best_cost"] = []
+        logger.history["best_fitness"] = []
         logger.history["population"] = []
-        logger.history["avg_cost"] = []
+        logger.history["avg_fitness"] = []
 
         # --- Main Loop ---
-        for it in range(self.params["iteration"]):
+        for it in range(self.params["num_iters"]):
 
             # --- Employed Bees ---
             for j in range(employed):
@@ -114,24 +113,24 @@ class ArtificialBee(BaseAlgorithm):
 
                 # generate candidate solution
                 new_solution = self.helper_cand_gen(dim, food_source_arr[j], food_source_arr[k], flag, lower_bound, upper_bound)
-                new_cost = problem.evaluate(new_solution)
-                new_fitness = self.calc_fitness(flag, new_cost)
+                new_fitness = problem.evaluate(new_solution)
+                new_score = self.calc_score(flag, new_fitness)
 
                 # greedy selection
-                if new_fitness > fitness_arr[j]:
+                if new_score > score_arr[j]:
                     food_source_arr[j] = new_solution
-                    cost_arr[j] = new_cost
                     fitness_arr[j] = new_fitness
+                    score_arr[j] = new_score
                     trial_cnt_arr[j] = 0
                 else:
                     trial_cnt_arr[j] += 1
 
             # --- Onlooker Bees ---
-            sum_fitness = np.sum(fitness_arr)
-            if sum_fitness == 0: # handle special case so that (avoid denominator = 0)
+            sum_score = np.sum(score_arr)
+            if sum_score == 0: # handle special case so that (avoid denominator = 0)
                 probs = np.ones(employed) / employed # even probability for each food source
             else:
-                probs = fitness_arr / sum_fitness # total prob = 1; in which higher fitness attached with high probability
+                probs = score_arr / sum_score # total prob = 1; in which higher score attached with high probability
 
             probs = probs.flatten()
             for _ in range(onlooker):
@@ -144,13 +143,13 @@ class ArtificialBee(BaseAlgorithm):
                     k = np.random.randint(employed) # ensure k !=j
 
                 new_solution = self.helper_cand_gen(dim, food_source_arr[j], food_source_arr[k], flag, lower_bound, upper_bound)
-                new_cost = problem.evaluate(new_solution)
-                new_fitness = self.calc_fitness(flag, new_cost)
+                new_fitness = problem.evaluate(new_solution)
+                new_score = self.calc_score(flag, new_fitness)
 
-                if new_fitness > fitness_arr[j]:
+                if new_score > score_arr[j]:
                     food_source_arr[j] = new_solution
-                    cost_arr[j] = new_cost
                     fitness_arr[j] = new_fitness
+                    score_arr[j] = new_score
                     trial_cnt_arr[j] = 0
                 else:
                     trial_cnt_arr[j] += 1
@@ -166,44 +165,44 @@ class ArtificialBee(BaseAlgorithm):
                     # Discrete Reset
                     food_source_arr[max_trials_idx] = np.random.randint(lower_bound, upper_bound, dim)
 
-                cost_arr[max_trials_idx] = problem.evaluate(food_source_arr[max_trials_idx])
-                fitness_arr[max_trials_idx] = self.calc_fitness(flag, cost_arr[max_trials_idx])
+                fitness_arr[max_trials_idx] = problem.evaluate(food_source_arr[max_trials_idx])
+                score_arr[max_trials_idx] = self.calc_score(flag, fitness_arr[max_trials_idx])
                 trial_cnt_arr[max_trials_idx] = 0
 
 
             # --- Update Global Best ---
             if flag:
                 # Minimization (Continuous)
-                cur_best_idx = np.argmin(cost_arr)
-                if cost_arr[cur_best_idx] < best_cost:
-                    best_cost = cost_arr[cur_best_idx]
+                cur_best_idx = np.argmin(fitness_arr)
+                if fitness_arr[cur_best_idx] < best_fitness:
+                    best_fitness = fitness_arr[cur_best_idx]
                     best_solution = food_source_arr[cur_best_idx].copy()
             else:
                 # Maximization (Knapsack)
-                cur_best_idx = np.argmax(cost_arr)
-                if cost_arr[cur_best_idx] > best_cost:  # Greater than
-                    best_cost = cost_arr[cur_best_idx]
+                cur_best_idx = np.argmax(fitness_arr)
+                if fitness_arr[cur_best_idx] > best_fitness:  # Greater than
+                    best_fitness = fitness_arr[cur_best_idx]
                     best_solution = food_source_arr[cur_best_idx].copy()
 
             # Logging per iteration
             logger.log("best_solution", best_solution.copy())
 
             if flag:
-                current_best_idx = np.argmin(cost_arr)
+                current_best_idx = np.argmin(fitness_arr)
             else:
-                current_best_idx = np.argmax(cost_arr)
+                current_best_idx = np.argmax(fitness_arr)
             current_best_bee = food_source_arr[current_best_idx].copy()
-            logger.history["avg_cost"].append(np.mean(cost_arr))
+            logger.history["avg_fitness"].append(np.mean(fitness_arr))
             logger.history["current_best"].append(current_best_bee)
             logger.history["population"].append(food_source_arr.copy())
-            logger.history["best_cost"].append(best_cost)
+            logger.history["best_fitness"].append(best_fitness)
         # Finish
-        logger.finish(best_solution=best_solution, best_fitness=best_cost)
+        logger.finish(best_solution=best_solution, best_fitness=best_fitness)
         return {
             "time(ms)": logger.meta["runtime"],
             "result": {
                 "best_solution": best_solution.tolist(),
-                "best_cost": best_cost,
+                "best_fitness": best_fitness,
                 "logger": logger
             }
         }

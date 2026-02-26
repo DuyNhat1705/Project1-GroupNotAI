@@ -120,7 +120,7 @@ class ContinuousVisualizer(BaseVisualizer):
             # If no average, label the best line clearly without a legend box
             ax_conv.set_title("Convergence Line Chart", fontsize=12, fontweight='bold')
 
-        ax_conv.set_xlabel("Generation")
+        ax_conv.set_xlabel("num_iters")
         ax_conv.set_ylabel("Fitness")
         ax_conv.grid(True, linestyle=":", alpha=0.7)
 

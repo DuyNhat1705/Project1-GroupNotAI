@@ -27,6 +27,11 @@ python main.py --algo abc --problem rastrigin
 python main.py --algo abc --problem rosenbrock
 
 Chạy file benchmark:
-python benchmark.py --problem maze
+python benchmark.py --problem shortestpathonmaze
 python benchmark.py --problem sphere
-python benchmark.py --problem ackley --runs 1 --dim 30 --params iteration=1000 total_bee=100
+python benchmark.py --problem ackley --runs 10 --dim 10 --params pop_size=20 num_iters=10
+python benchmark.py --problem michalewicz --runs 10 --dim 10 --params pop_size=30 num_iters=50
+
+python benchmark.py --problem tsp1 --runs 10 --params pop_size=30 num_iters=100
+
+num_iters=100 pop_size=25

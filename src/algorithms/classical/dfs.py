@@ -30,12 +30,13 @@ class DFS(BaseAlgorithm):
         best_cost = problem.evaluate(np.array(best_solution))
         nodes_expanded = 0
 
-        start_time = time.perf_counter()
-        time_limit = 10.0
+        # start_time = time.perf_counter()
+        # time_limit = 10.0
+        num_iters = self.params.get("num_iters", 100)
 
         while stack:
-            if time.perf_counter() - start_time > time_limit:
-                print(f"  [DFS] Time limit ({time_limit}s) reached")
+            if nodes_expanded > num_iters:
+                print(f"  [{self.name}] Iteration limit ({num_iters}) reached!")
                 break
 
             idx, path = stack.pop()
@@ -86,12 +87,14 @@ class DFS(BaseAlgorithm):
         best_solution = [0] * problem.dimension
         nodes_expanded = 0
 
-        start_time = time.perf_counter()
-        time_limit = 10.0
+        # start_time = time.perf_counter()
+        # time_limit = 10.0
+
+        num_iters = self.params.get("num_iters", 100)
 
         while stack:
-            if time.perf_counter() - start_time > time_limit:
-                print(f"  [DFS] Time limit ({time_limit}s) reached")
+            if nodes_expanded > num_iters:
+                print(f"  [{self.name}] Iteration limit ({num_iters}) reached!")
                 break
 
             idx, cur_w, cur_v, path = stack.pop()
@@ -143,15 +146,18 @@ class DFS(BaseAlgorithm):
         visited = {start}
         predecessor = {start: None}
 
+        nodes_expanded = 0
         logger = Logger(self.name, run_id=seed)
         logger.history["visited_edges"] = [(start, start)]
 
-        start_time = time.perf_counter()
-        time_limit = 10.0
+        # start_time = time.perf_counter()
+        # time_limit = 10.0
+
+        num_iters = self.params.get("num_iters", 100)
 
         while stack:
-            if time.perf_counter() - start_time > time_limit:
-                print(f"  [DFS] Time limit ({time_limit}s) reached")
+            if nodes_expanded > num_iters:
+                print(f"  [{self.name}] Iteration limit ({num_iters}) reached!")
                 break
 
             current = stack.pop()

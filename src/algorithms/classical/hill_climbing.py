@@ -8,10 +8,10 @@ class HillClimbing(BaseAlgorithm):
     def __init__(self, params=None):
         """"
         step: max step size from current position
-        iteration: number of iterations
+        num_iters: number of num_iters
         """
         # parameter initialization
-        default_params = {"step": 0.5, "iteration": 300}
+        default_params = {"step": 0.5, "num_iters": 300}
         if params:
             default_params.update(params)
         super().__init__("Hill Climbing", default_params)
@@ -75,7 +75,7 @@ class HillClimbing(BaseAlgorithm):
 
         logger.history["best_fitness"] = []
 
-        for ite in range(self.params["iteration"]):
+        for ite in range(self.params["num_iters"]):
             next_pos = self.get_neighbor(cur, lower_bound, upper_bound, problem.cont_flag)
             next_fit = problem.evaluate(next_pos)
 

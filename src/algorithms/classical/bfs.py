@@ -34,12 +34,13 @@ class BFS(BaseAlgorithm):
         best_cost = problem.evaluate(np.array(best_solution))
         nodes_expanded = 0
 
-        start_time = time.perf_counter()
-        time_limit = 10.0  # time limit
+        num_iters = self.params.get("num_iters", 100)
+        # start_time = time.perf_counter()
+        # time_limit = 10.0  # time limit
 
         while len(queue) > 0:
-            if time.perf_counter() - start_time > time_limit: # return when time limit reached
-                print(f"  [BFS] Time limit ({time_limit}s) reached")
+            if nodes_expanded > num_iters:
+                print(f"  [{self.name}] Iteration limit ({num_iters}) reached!")
                 break
 
             current = queue.pop(0) # take the frontier state
@@ -90,10 +91,11 @@ class BFS(BaseAlgorithm):
 
         start_time = time.perf_counter()
         time_limit = 10.0  # Time limit
+        num_iters = self.params.get("num_iters", 1000)
 
         while len(queue) > 0:
-            if time.perf_counter() - start_time > time_limit:
-                print(f"  [BFS] Time limit ({time_limit}s) reached!")
+            if nodes_expanded > num_iters:
+                print(f"  [{self.name}] Iteration limit ({num_iters}) reached!")
                 break
 
             current = queue.pop(0)  # FIFO, take frontier
@@ -140,17 +142,20 @@ class BFS(BaseAlgorithm):
         visited = {start}  # visited nodes
         predecessor = {start: None}  # reconstruct path from root to current node
 
+        nodes_expanded = 0
+
         logger = Logger(self.name, run_id=seed)
         logger.history["visited_edges"] = []
         logger.history["visited_edges"].append((start, start))
         ite = 0  # iteration count
 
-        start_time = time.perf_counter()
-        time_limit = 10.0  # Time limit to prevent freeze on massive open mazes
+        # start_time = time.perf_counter()
+        # time_limit = 10.0  # Time limit to prevent freeze on massive open mazes
 
+        num_iters = self.params.get("num_iters", 100)
         while len(queue) > 0:
-            if time.perf_counter() - start_time > time_limit:
-                print(f"  [BFS] Time limit ({time_limit}s) reached! Aborting early...")
+            if nodes_expanded > num_iters:
+                print(f"  [{self.name}] Iteration limit ({num_iters}) reached!")
                 break
 
             current = queue.pop(0)  # pop front

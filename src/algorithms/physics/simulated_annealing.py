@@ -11,9 +11,9 @@ class SimulatedAnnealing(BaseAlgorithm):
         temperature: the initial temperature
         decay: decay rate, decide how the temperature decrease
         step: step size from current position
-        iteration: number of iterations
+        num_iters: number of num_iters
         """
-        default_params = {"temperature": 50, "decay": 0.98, "step": 1.5, "iteration": 300}
+        default_params = {"temperature": 50, "decay": 0.98, "step": 1.5, "num_iters": 300}
         if params:
             default_params.update(params)
         # Pass the merged dict to BaseAlgorithm
@@ -85,9 +85,9 @@ class SimulatedAnnealing(BaseAlgorithm):
         logger.history["best_fitness"] = []
         #logger.history["avg_fitness"] = []
 
-        for ite in range(self.params["iteration"]):
+        for ite in range(self.params["num_iters"]):
 
-            # exploring at each iteration
+            # exploring at each num_iters
             next_pos = self.get_neighbor(cur, lower_bound, upper_bound, problem.cont_flag)
             next_fit = problem.evaluate(next_pos)
 

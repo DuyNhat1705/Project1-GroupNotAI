@@ -4,14 +4,14 @@ import random
 from src.problems.base_problem import BaseProblem
 
 class ShortestPathOnGraph(BaseProblem):
-    def __init__(self, context = "graph1", directed=True, seed=None):
+    def __init__(self, name = "ShortestPathOnGraph", context = "graph1", directed=True, seed=None):
         """
         weighted adjacency list (dict)
             {<vertice> :  {<vertice>: <weight>}
         filename: input txt file
         seed: random seed for position
         """
-        super().__init__("ShortestPathOnGraph", dimension=1)
+
         self.adj_list = {}
         self.directed = directed
         self.start = None
@@ -23,12 +23,15 @@ class ShortestPathOnGraph(BaseProblem):
         self.load_from_file(self.data_path)
         
         self.generate_coords(seed) #assign node position for visualization
-        self.dimension = self.__len__()
+        dim = self.__len__()
+        self.dimension = dim
+        super().__init__(name=name, dimension=dim)
 
+    def getName(self):
+        return self.name
 
     def __len__(self):
         return len(self.adj_list)
-
 
     def generate_coords(self, seed):
         """

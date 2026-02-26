@@ -4,7 +4,7 @@ import os
 
 
 class ShortestPathOnMaze(BaseProblem):
-    def __init__(self, context = 'maze1'):
+    def __init__(self, context='maze1'):
         super().__init__(name="ShortestPathOnMaze", dimension=2)
         self.maze = None
         self.start = None
@@ -12,6 +12,9 @@ class ShortestPathOnMaze(BaseProblem):
 
         self.data_path = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
         self.load_from_file(self.data_path)
+
+    def getName(self):
+        return self.name
 
     def load_from_file(self, filename):
         with open(filename, "r") as file:
