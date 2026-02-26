@@ -94,6 +94,7 @@ class ACO(BaseAlgorithm):
                 "result": {"best_solution": best_solution.tolist(), "best_fitness": self.calc_fitness(True, best_cost), "logger": logger}}
     
     def _solve_discrete(self, problem, seed):
+        """Discrete solver entry point. Currently supports: TSP (requires dist_mat)."""
         logger = Logger(self.name, run_id=seed)
         logger.history["num_iters_best"] = []
         
