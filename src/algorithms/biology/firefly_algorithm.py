@@ -103,6 +103,7 @@ class FireflyAlgorithm(BaseAlgorithm):
         """Discrete solver entry point. Currently supports: TSP (requires dist_mat)."""
         logger = Logger(self.name, run_id=seed)
         logger.history["iteration_best"] = []
+        logger.history["best_fitness"] = []
 
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
@@ -163,6 +164,7 @@ class FireflyAlgorithm(BaseAlgorithm):
             # Log every iteration for TSP convergence tracking
             best_tour_iter = pos_to_tour(best_firefly)
             logger.history["iteration_best"].append((best_tour_iter.copy(), best_cost))
+            logger.history["best_fitness"].append(best_cost)
         
         logger.history["population"] = logger.history["iteration_best"]
         

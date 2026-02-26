@@ -89,6 +89,7 @@ class PSO(BaseAlgorithm):
         """Discrete solver entry point. Currently supports: TSP (requires dist_mat)."""
         logger = Logger(self.name, run_id=seed)
         logger.history["iteration_best"] = []
+        logger.history["best_fitness"] = []
         
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
@@ -135,6 +136,7 @@ class PSO(BaseAlgorithm):
             # Log every iteration for TSP convergence tracking
             best_tour_iter = pos_to_tour(gbest_pos)
             logger.history["iteration_best"].append((best_tour_iter.copy(), gbest_cost))
+            logger.history["best_fitness"].append(gbest_cost)
         
         logger.history["population"] = logger.history["iteration_best"]
         

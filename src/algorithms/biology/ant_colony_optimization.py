@@ -97,6 +97,7 @@ class ACO(BaseAlgorithm):
         """Discrete solver entry point. Currently supports: TSP (requires dist_mat)."""
         logger = Logger(self.name, run_id=seed)
         logger.history["iteration_best"] = []
+        logger.history["best_fitness"] = []
         
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
@@ -145,6 +146,7 @@ class ACO(BaseAlgorithm):
             
             # Log every iteration for TSP convergence tracking
             logger.history["iteration_best"].append((np.array(best_tour), best_cost))
+            logger.history["best_fitness"].append(best_cost)
         
         logger.history["population"] = logger.history["iteration_best"]
         
