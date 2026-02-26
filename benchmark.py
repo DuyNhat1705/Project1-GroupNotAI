@@ -30,11 +30,11 @@ def timeout_handler(flag):
 
 def determine_category(prob_name):
     prob = prob_name.lower()
-    if prob in ["tsp1"]: return "tsp"
+    if prob in ["tsp1", "tsp2"]: return "tsp"
     if prob in ["maze1", "maze2"]: return "maze"
-    if prob in ["knapsack1"]: return "knapsack"
-    if prob in ["graph", "shortestpathongraph"]: return "graph"
-    if prob in ["coloring1"]: return "graphcoloring"
+    if prob in ["knapsack1", "knapsack2"]: return "knapsack"
+    if prob in ["graph1"]: return "graph"
+    if prob in ["coloring1", "coloring2"]: return "graphcoloring"
     return "continuous"
 
 def extract_convergence(logger):
@@ -74,7 +74,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
             algo = get_algorithm(algo_name, **algo_params)
 
             timeout_flag = [False]
-            timer = threading.Timer(10.0, timeout_handler, args=[timeout_flag])
+            timer = threading.Timer(20.0, timeout_handler, args=[timeout_flag])
 
             tracemalloc.start()
             start_time = time.perf_counter()
@@ -106,7 +106,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
                 timer.cancel()
                 tracemalloc.stop()
                 if timeout_flag[0]:
-                    print(f"\n  [TIMEOUT] Run {i + 1} exceeded 10s! BFS/DFS has combinatorial explosion.")
+                    print(f"\n  [TIMEOUT] Run {i + 1} exceeded 20s!")
                     break
                 else:
                     raise

@@ -83,9 +83,10 @@ class HillClimbing(BaseAlgorithm):
             if next_fit < cur_fit:
                 cur_fit = next_fit  # update position and evaluation
                 cur = next_pos
-                # log new postion
-                logger.history["explored"].append((cur, cur_fit))
-            logger.log("best_fitness", cur_fit)
+
+            # log new postion
+            logger.history["explored"].append((cur, cur_fit))
+            logger.history["best_fitness"].append(cur_fit)
 
         # log the solution and best score
         logger.finish(best_solution=cur, best_fitness=cur_fit)

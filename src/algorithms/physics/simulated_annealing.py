@@ -80,10 +80,10 @@ class SimulatedAnnealing(BaseAlgorithm):
         logger = Logger(self.name, run_id=seed)
         logger.history["explored"] = []
 
-        logger.history["explored"].append([cur.copy(), best.copy()])
+        #logger.history["explored"].append(([cur.copy(), best.copy()], best_fit))
 
         logger.history["best_fitness"] = []
-        #logger.history["avg_fitness"] = []
+
 
         for ite in range(self.params["num_iters"]):
 
@@ -104,7 +104,7 @@ class SimulatedAnnealing(BaseAlgorithm):
                 best_fit = cur_fit
 
             logger.log("best_fitness", best_fit)
-            logger.history["explored"].append([cur.copy(), best.copy()])
+            logger.history["explored"].append(([cur.copy(), best.copy()], best_fit))
 
             temp *= self.params["decay"] # decrease temperature by decay factor
 

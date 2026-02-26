@@ -4,17 +4,44 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from src.visualization.base_visualizer import BaseVisualizer
 
+
 class TSPVisualizer(BaseVisualizer):
     def __init__(self, problem, history, path=None, title="TSP Visualization"):
-        super().__init__(problem, history, path, title)
+
+        if isinstance(history, dict):
+            if "population" in history:
+                extracted_history = history["population"]
+            elif "explored" in history:
+                extracted_history = history["explored"]
+            else:
+                extracted_history = []
+        else:
+            extracted_history = history
+
+        super().__init__(problem, extracted_history, path, title)
 
         self.coords = problem.coords
-        self.dist_mat = problem.dist_mat  # Get the distance matrix
+        self.dist_mat = problem.dist_mat
         self.city_names = getattr(problem, 'city_names', [])
         self.num_cities = problem.dimension
 
-        self.best_costs = [step[1] for step in self.history]
-        self.solutions = [step[0] for step in self.history]
+        # THE FIX 2: Safe Data Parsing for HC, SA, and others
+        self.best_costs = []
+        self.solutions = []
+
+        for item in self.history:
+            if isinstance(item, tuple) and len(item) >= 2:
+                path_data = item[0]
+                cost = float(item[1])  # Safely extract the numeric cost
+
+                # SA passes [current_path, best_path]
+                if isinstance(path_data, list) and len(path_data) == 2:
+                    best_path = np.array(path_data[1])
+                else:
+                    best_path = np.array(path_data)
+
+                self.solutions.append(best_path)
+                self.best_costs.append(cost)
 
     def animate(self):
         print(f"Visualization: {len(self.history)} steps...")
@@ -61,7 +88,11 @@ class TSPVisualizer(BaseVisualizer):
         # PANEL 2: SETUP CONVERGENCE PLOT
         # ==========================================
         ax2.set_xlim(0, len(self.history))
-        ax2.set_ylim(min(self.best_costs) * 0.9, max(self.best_costs) * 1.1)
+
+        # Safe bounds using the cleaned numeric array
+        if self.best_costs:
+            ax2.set_ylim(min(self.best_costs) * 0.9, max(self.best_costs) * 1.1)
+
         ax2.set_title("Optimization Progress")
         ax2.set_xlabel("Iteration")
         ax2.set_ylabel("Total Distance")
@@ -73,7 +104,9 @@ class TSPVisualizer(BaseVisualizer):
         # ---------- update function (for animation) ----------------
 
         def update(frame):
+            # This is now safely guaranteed to be a numpy array
             current_path = self.solutions[frame].astype(int)
+
             # Append start node to end to close the loop
             draw_indices = np.append(current_path, current_path[0])
 

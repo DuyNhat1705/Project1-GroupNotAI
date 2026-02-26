@@ -105,9 +105,9 @@ class ContinuousVisualizer(BaseVisualizer):
         ax3d.legend(loc="upper left", fontsize=10, facecolor="white", framealpha=0.85, edgecolor="gray")
 
         # ===== CONVERGENCE CHART =====
-        best_hist = self.metrics.get("best_fitness", []) or self.metrics.get("best_cost", [])
-        #print(best_hist)
-        avg_hist = self.metrics.get("avg_fitness", []) or self.metrics.get("avg_cost", [])
+        best_hist = self.metrics.get("best_fitness", [])
+        print(best_hist)
+        avg_hist = self.metrics.get("avg_fitness", [])
 
         conv_best, = ax_conv.plot([], [], "royalblue", lw=2.5, label="Best Fitness")
 

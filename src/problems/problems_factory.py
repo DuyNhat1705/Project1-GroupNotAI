@@ -23,10 +23,13 @@ def get_problem(name, **kwargs):
         "maze2": ShortestPathOnMaze,
 
         "knapsack1": KnapsackProblem,
+        "knapsack2": KnapsackProblem,
 
         "tsp1": TravelSalesmanProblem,
+        "tsp2": TravelSalesmanProblem,
 
         "coloring1": GraphColoring,
+        "coloring2": GraphColoring,
 
         # --- Continuous ---
         "sphere": Sphere,

@@ -30,8 +30,6 @@ def get_visualizer(params):
             metrics = {
                 "best_fitness": logger.history.get("best_fitness", []),
                 "avg_fitness": logger.history.get("avg_fitness", []),
-                "avg_cost": logger.history.get("avg_cost", []),
-                "best_cost": logger.history.get("best_cost", [])
             }
         else:
             metrics = {}
@@ -71,7 +69,7 @@ def get_visualizer(params):
             case "TSP":
                 print(f"  -> Done. Best Fitness: {result.get('best_fitness', None)}")
                 logger = result.get("logger")
-                history = logger.history.get("population", [])
+                history = logger.history.get("population", []) or logger.history.get("explored", [])
                 num = params.get("context", "tsp1")[3:]
                 algo_name = params.get("algorithm", "").lower()
                 title = params.get("algorithm", "Unknown Algo") + " on TSP " + num
