@@ -8,7 +8,7 @@ import math
 class FireflyAlgorithm(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
-            'swarm_size': 50, 'iterations': 100, 'alpha': 0.5,
+            'pop_size': 50, 'num_iters': 100, 'alpha': 0.5,
             'beta_0': 1.0, 'gamma': 1.0
         }
         if params:
@@ -45,22 +45,22 @@ class FireflyAlgorithm(BaseAlgorithm):
         diameter = np.linalg.norm(ub - lb)
         effective_gamma = self.gamma / (diameter ** 2) if diameter > 0 else self.gamma
         
-        fireflies = np.random.uniform(lb, ub, (self.swarm_size, dims))
+        fireflies = np.random.uniform(lb, ub, (self.pop_size, dims))
         
         fitness = np.array([problem.evaluate(f) for f in fireflies])
         best_idx = np.argmin(fitness)
         best_position, best_cost = fireflies[best_idx].copy(), fitness[best_idx]
         
-        for iteration in range(self.iterations):
+        for iteration in range(self.num_iters):
             alpha = self.alpha * (0.97 ** iteration)
             new_fireflies = fireflies.copy()
             
-            for i in range(self.swarm_size):
+            for i in range(self.pop_size):
                 moved = False
                 origin = fireflies[i].copy()
                 # Find single brightest attractor
                 best_j, best_beta = -1, -1.0
-                for j in range(self.swarm_size):
+                for j in range(self.pop_size):
                     if i != j and fitness[j] < fitness[i]:
                         r = np.linalg.norm(origin - fireflies[j])
                         beta = self.beta_0 * math.exp(-effective_gamma * r**2)
@@ -113,7 +113,7 @@ class FireflyAlgorithm(BaseAlgorithm):
         tsp_diameter = math.sqrt(n)  # TSP positions in [0,1]^n
         effective_gamma = self.gamma / (tsp_diameter ** 2) if tsp_diameter > 0 else self.gamma
         
-        fireflies = np.random.uniform(0, 1, (self.swarm_size, n))
+        fireflies = np.random.uniform(0, 1, (self.pop_size, n))
         
         def pos_to_tour(pos):
             return np.argsort(pos)
@@ -123,16 +123,16 @@ class FireflyAlgorithm(BaseAlgorithm):
         best_firefly = fireflies[best_idx].copy()
         best_cost = fitness[best_idx]
         
-        for iteration in range(self.iterations):
+        for iteration in range(self.num_iters):
             alpha = self.alpha * (0.97 ** iteration)
             new_fireflies = fireflies.copy()
             
-            for i in range(self.swarm_size):
+            for i in range(self.pop_size):
                 moved = False
                 origin = fireflies[i].copy()
                 # Find single brightest TSP attractor
                 best_j, best_beta = -1, -1.0
-                for j in range(self.swarm_size):
+                for j in range(self.pop_size):
                     if i != j and fitness[j] < fitness[i]:
                         r = np.linalg.norm(origin - fireflies[j])
                         beta = self.beta_0 * math.exp(-effective_gamma * r**2) 
