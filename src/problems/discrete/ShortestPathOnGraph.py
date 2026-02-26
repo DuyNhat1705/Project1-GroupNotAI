@@ -4,7 +4,7 @@ import random
 from src.problems.base_problem import BaseProblem
 
 class ShortestPathOnGraph(BaseProblem):
-    def __init__(self, directed=True, seed=None):
+    def __init__(self, context = "graph1", directed=True, seed=None):
         """
         weighted adjacency list (dict)
             {<vertice> :  {<vertice>: <weight>}
@@ -19,7 +19,7 @@ class ShortestPathOnGraph(BaseProblem):
         self.seed = seed
         self.node_coords = {}  # { 'NodeID': (x, y) }
 
-        self.data_path = os.path.join(BaseProblem.project_root, 'data', 'weighted_graph.txt')
+        self.data_path = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
         self.load_from_file(self.data_path)
         
         self.generate_coords(seed) #assign node position for visualization

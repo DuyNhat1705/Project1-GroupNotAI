@@ -4,13 +4,13 @@ import os
 
 
 class ShortestPathOnMaze(BaseProblem):
-    def __init__(self):
+    def __init__(self, context = 'maze1'):
         super().__init__(name="ShortestPathOnMaze", dimension=2)
         self.maze = None
         self.start = None
         self.goal = None
 
-        self.data_path = os.path.join(BaseProblem.project_root, 'data', 'maze.txt')
+        self.data_path = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
         self.load_from_file(self.data_path)
 
     def load_from_file(self, filename):
@@ -19,14 +19,13 @@ class ShortestPathOnMaze(BaseProblem):
             lines = [line.strip() for line in lines
                      if line.strip() and not line.strip().startswith('#')]
 
-            # Read raw X, Y (Col, Row) coordinates
+            # Read raw (row, col) coordinates
             start_raw = tuple(map(int, lines[0].split()))
             goal_raw = tuple(map(int, lines[1].split()))
 
-            # --- FLIP TO (ROW, COL) ---
-            # NumPy expects (y, x)
-            self.start = (start_raw[1], start_raw[0])
-            self.goal = (goal_raw[1], goal_raw[0])
+            # --- Assign to class properties ---
+            self.start = (start_raw[0], start_raw[1])
+            self.goal = (goal_raw[0], goal_raw[1])
 
             # Load maze matrix
             matrix_data = [list(map(int, line.split())) for line in lines[2:]]

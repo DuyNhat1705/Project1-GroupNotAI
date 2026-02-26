@@ -22,3 +22,5 @@ class BaseProblem(ABC):
         self.dimension = dimension  # complexity of problem space
         self.bounds = bounds  # bound option for objective function
         self.cont_flag = cont_flag  # True if continous
+    def getName(self):
+        return self.name

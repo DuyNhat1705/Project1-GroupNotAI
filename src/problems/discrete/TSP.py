@@ -4,13 +4,13 @@ import os
 from src.problems.base_problem import BaseProblem
 
 class TravelSalesmanProblem(BaseProblem):
-    def __init__(self, name="TSP"):
+    def __init__(self, context = "tsp1",name="TSP"):
         self.city_names = []
         self.coords = None  # coords for visualization
         self.dist_mat = None
         self.best_distance = None
 
-        self.filepath = os.path.join(BaseProblem.project_root, 'data', 'city_map.txt')
+        self.filepath = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
 
         self.load_from_file(self.filepath)
         dim = len(self.dist_mat)

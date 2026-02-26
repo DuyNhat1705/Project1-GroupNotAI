@@ -16,16 +16,17 @@ def get_problem(name, **kwargs):
     problems = {
         # --- Discrete ---
         "shortestpathongraph": ShortestPathOnGraph,
-        "graph": ShortestPathOnGraph,
+        "graph1": ShortestPathOnGraph,
         
         "shortestpathonmaze": ShortestPathOnMaze,
-        "maze": ShortestPathOnMaze,
+        "maze1": ShortestPathOnMaze,
+        "maze2": ShortestPathOnMaze,
 
-        "knapsack": KnapsackProblem,
+        "knapsack1": KnapsackProblem,
 
-        "tsp": TravelSalesmanProblem,
+        "tsp1": TravelSalesmanProblem,
 
-        "graphcoloring": GraphColoring,
+        "coloring1": GraphColoring,
 
         # --- Continuous ---
         "sphere": Sphere,
@@ -57,4 +58,4 @@ def get_problem(name, **kwargs):
         return ProblemClass(directed=directed, seed=seed)
 
     # Mặc định
-    return ProblemClass()
+    return ProblemClass(context=name_key)

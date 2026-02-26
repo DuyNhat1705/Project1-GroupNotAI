@@ -4,12 +4,12 @@ import numpy as np
 from src.problems.base_problem import BaseProblem
 
 class KnapsackProblem(BaseProblem):
-    def __init__(self, name="Knapsack Problem"):
+    def __init__(self, context = "knapsack1", name="Knapsack Problem"):
         self.weights =None
         self.values = None
         self.capacity = None
         self.seed = None
-        self.filepath = os.path.join(BaseProblem.project_root, 'data', 'knapsack.txt')
+        self.filepath = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
         # Load from filepath
         self.load_from_file(self.filepath)
 
