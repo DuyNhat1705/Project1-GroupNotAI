@@ -212,7 +212,7 @@ def generate_reports(stats, prob_name, optimum=None):
         plt.ylabel("Objective value")
 
         if plt.gca().get_legend_handles_labels()[0]:
-            # THE FIX: Moved legend completely outside the chart area
+            # Moved legend completely outside the chart area
             plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 
         plt.grid(True, linestyle='--', alpha=0.6)
