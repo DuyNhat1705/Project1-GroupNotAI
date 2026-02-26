@@ -27,13 +27,11 @@ class PSO(BaseAlgorithm):
             random.seed(seed)
             np.random.seed(seed)
         
-        # Detect problem type
         if hasattr(problem, 'cont_flag') and problem.cont_flag:
             return self._solve_continuous(problem, seed)
-        elif hasattr(problem, 'dist_mat'):
-            return self._solve_tsp(problem, seed)
         else:
-            return self._solve_continuous(problem, seed)
+            # Discrete (TSP or other)
+            return self._solve_discrete(problem, seed)
     
     def _solve_continuous(self, problem, seed):
         logger = Logger(self.name, run_id=seed)
@@ -42,20 +40,15 @@ class PSO(BaseAlgorithm):
         logger.history["avg_fitness"] = []
         
         dims = problem.dimension
-        flag = problem.cont_flag
-        if flag:
-            bounds = np.array(problem.bounds)
-            lb, ub = bounds[:, 0], bounds[:, 1]
-        else:
-            lb, ub = 0, 2
+        bounds = np.array(problem.bounds)
+        lb, ub = bounds[:, 0], bounds[:, 1]
         
-        positions = np.random.uniform(lb, ub, (self.swarm_size, dims)) if flag else \
-                    np.random.randint(0, 2, (self.swarm_size, dims)).astype(float)
+        positions = np.random.uniform(lb, ub, (self.swarm_size, dims))
         velocities = np.random.uniform(-1, 1, (self.swarm_size, dims))
         
         pbest_pos = positions.copy()
         pbest_cost = np.array([problem.evaluate(p) for p in positions])
-        gbest_idx = np.argmin(pbest_cost) if flag else np.argmax(pbest_cost)
+        gbest_idx = np.argmin(pbest_cost)
         gbest_pos, gbest_cost = pbest_pos[gbest_idx].copy(), pbest_cost[gbest_idx]
         
         for iteration in range(self.iterations):
@@ -68,20 +61,16 @@ class PSO(BaseAlgorithm):
                                 self.c2 * r2 * (gbest_pos - positions[i])
                 
                 positions[i] += velocities[i]
-                
-                if flag:
-                    positions[i] = np.clip(positions[i], lb, ub)
-                else:
-                    positions[i] = (np.random.rand(dims) < 1 / (1 + np.exp(-positions[i]))).astype(float)
+                positions[i] = np.clip(positions[i], lb, ub)
                 
                 cost = problem.evaluate(positions[i])
                 iter_costs.append(cost)
                 
-                if (flag and cost < pbest_cost[i]) or (not flag and cost > pbest_cost[i]):
+                if cost < pbest_cost[i]:
                     pbest_cost[i] = cost
                     pbest_pos[i] = positions[i].copy()
                     
-                    if (flag and cost < gbest_cost) or (not flag and cost > gbest_cost):
+                    if cost < gbest_cost:
                         gbest_cost = cost
                         gbest_pos = positions[i].copy()
             
@@ -92,14 +81,19 @@ class PSO(BaseAlgorithm):
             # Log population for visualization
             logger.history["population"].append(positions.copy())
         
-        logger.finish(best_solution=gbest_pos.tolist(), best_fitness=self.calc_fitness(flag, gbest_cost))
+        logger.finish(best_solution=gbest_pos.tolist(), best_fitness=self.calc_fitness(True, gbest_cost))
         return {"time(ms)": logger.meta["runtime"],
-                "result": {"best_solution": gbest_pos.tolist(), "best_fitness": self.calc_fitness(flag, gbest_cost), "logger": logger}}
+                "result": {"best_solution": gbest_pos.tolist(), "best_fitness": self.calc_fitness(True, gbest_cost), "logger": logger}}
     
-    def _solve_tsp(self, problem, seed):
-        """PSO for TSP - order-based encoding"""
+    def _solve_discrete(self, problem, seed):
+        """Discrete solver entry point. Currently supports: TSP (requires dist_mat)."""
         logger = Logger(self.name, run_id=seed)
         logger.history["iteration_best"] = []
+        
+        if not hasattr(problem, 'dist_mat'):
+            logger.finish(best_solution=[], best_fitness=float('inf'))
+            return {"time(ms)": logger.meta["runtime"],
+                    "result": {"best_solution": [], "cost": float('inf'), "logger": logger}}
         
         n = problem.dimension
         positions = np.random.uniform(0, 1, (self.swarm_size, n))
