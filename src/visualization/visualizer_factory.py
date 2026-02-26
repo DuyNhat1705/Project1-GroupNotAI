@@ -24,7 +24,7 @@ def get_visualizer(params):
             history = []
         
         algo_name = params.get("algorithm", "Unknown Algo")
-        title = f"{algo_name} on {problem.getName()}"
+        title = f"{algo_name} on {problem.name}"
         
         if logger:
             metrics = {
@@ -42,7 +42,7 @@ def get_visualizer(params):
 
     # 2. DISCRETE PROBLEMS (Graph, Maze)
     else:
-        problem_name = problem.getName()
+        problem_name = problem.name
         match problem_name:
             case "ShortestPathOnGraph":
                 print(f"  -> Done. Cost: {result.get('cost', 'N/A')}")

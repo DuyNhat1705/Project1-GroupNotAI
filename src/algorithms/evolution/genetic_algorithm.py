@@ -17,7 +17,7 @@ class GeneticAlgorithm(BaseAlgorithm):
         super().__init__("Genetic Algorithm", default_params)
 
     def solve(self, problem, seed=None):
-        problem_name = problem.getName().lower()
+        problem_name = problem.name.lower()
 
         if "tsp" in problem_name:
             return self.tsp_solve(problem, seed)

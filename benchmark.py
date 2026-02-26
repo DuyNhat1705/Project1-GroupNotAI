@@ -23,7 +23,6 @@ COMPATIBILITY = {
     "graphcoloring": ["bfs", "dfs"]
 }
 
-
 def timeout_handler(flag):
     """Sets the timeout flag and forces a KeyboardInterrupt in the main thread"""
     flag[0] = True
