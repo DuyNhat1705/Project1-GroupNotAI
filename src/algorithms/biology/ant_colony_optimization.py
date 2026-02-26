@@ -59,7 +59,7 @@ class ACO(BaseAlgorithm):
         archive.sort(key=lambda x: x[1])
         best_solution, best_cost = archive[0][0].copy(), archive[0][1]
         
-        for num_iters in range(self.num_iters):
+        for iteration in range(self.num_iters):
             # Calculate weights
             weights = [math.exp(-(r**2) / (2 * self.xi**2 * self.archive_size**2)) / 
                       (self.archive_size * self.xi * math.sqrt(2 * math.pi)) for r in range(len(archive))]
@@ -96,7 +96,7 @@ class ACO(BaseAlgorithm):
     def _solve_discrete(self, problem, seed):
         """Discrete solver entry point. Currently supports: TSP (requires dist_mat)."""
         logger = Logger(self.name, run_id=seed)
-        logger.history["num_iters_best"] = []
+        logger.history["iteration_best"] = []
         
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
@@ -144,9 +144,9 @@ class ACO(BaseAlgorithm):
                     pheromones[ant_tour[0]][ant_tour[-1]] += deposit
             
             # Log every iteration for TSP convergence tracking
-            logger.history["iteration_best"].append((best_tour[:] if best_tour else [], best_cost))
+            logger.history["iteration_best"].append((np.array(best_tour), best_cost))
         
-        logger.history["explored"] = logger.history["iteration_best"]
+        logger.history["population"] = logger.history["iteration_best"]
         
         logger.finish(best_solution=best_tour, best_fitness=self.calc_fitness(False, best_cost))
         return {"time(ms)": logger.meta["runtime"],
