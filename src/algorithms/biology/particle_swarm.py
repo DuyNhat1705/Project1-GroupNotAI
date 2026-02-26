@@ -26,7 +26,7 @@ class PSO(BaseAlgorithm):
         if seed is not None:
             random.seed(seed)
             np.random.seed(seed)
-        
+    
         if hasattr(problem, 'cont_flag') and problem.cont_flag:
             return self._solve_continuous(problem, seed)
         else:
@@ -136,7 +136,7 @@ class PSO(BaseAlgorithm):
             best_tour_iter = pos_to_tour(gbest_pos)
             logger.history["iteration_best"].append((best_tour_iter.copy(), gbest_cost))
         
-        logger.history["explored"] = logger.history["iteration_best"]
+        logger.history["population"] = logger.history["iteration_best"]
         
         best_tour = pos_to_tour(gbest_pos)
         logger.finish(best_solution=best_tour, best_fitness=gbest_cost)

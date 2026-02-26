@@ -144,9 +144,9 @@ class ACO(BaseAlgorithm):
                     pheromones[ant_tour[0]][ant_tour[-1]] += deposit
             
             # Log every iteration for TSP convergence tracking
-            logger.history["iteration_best"].append((best_tour[:] if best_tour else [], best_cost))
+            logger.history["iteration_best"].append((np.array(best_tour), best_cost))
         
-        logger.history["explored"] = logger.history["iteration_best"]
+        logger.history["population"] = logger.history["iteration_best"]
         
         logger.finish(best_solution=best_tour, best_fitness=self.calc_fitness(False, best_cost))
         return {"time(ms)": logger.meta["runtime"],

@@ -164,7 +164,7 @@ class FireflyAlgorithm(BaseAlgorithm):
             best_tour_iter = pos_to_tour(best_firefly)
             logger.history["iteration_best"].append((best_tour_iter.copy(), best_cost))
         
-        logger.history["explored"] = logger.history["iteration_best"]
+        logger.history["population"] = logger.history["iteration_best"]
         
         best_tour = pos_to_tour(best_firefly)
         logger.finish(best_solution=best_tour, best_fitness=best_cost)
