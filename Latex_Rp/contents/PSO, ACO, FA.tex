@@ -1,0 +1,581 @@
+\subsection{Biology-Based Algorithms}
+
+% =========================================================
+\subsubsection{Particle Swarm Optimization (PSO)}
+% =========================================================
+
+\textbf{Introduction}
+
+Particle Swarm Optimization (PSO) is a population-based metaheuristic proposed by Kennedy and
+Eberhart in 1995, inspired by the collective movement of bird flocks and fish schools. Each
+candidate solution is modeled as a \textit{particle} that navigates the search space by
+combining its own memory (personal best position) with social knowledge shared across the
+entire swarm (global best position). The implementation supports both continuous optimization
+and discrete combinatorial problems such as the Travelling Salesman Problem (TSP).
+
+Default hyperparameters used in this implementation:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Default value} \\
+\hline
+Population size          & $N$          & 30   \\
+Number of iterations     & $G$          & 100  \\
+Max inertia weight       & $w_{\max}$   & 0.9  \\
+Min inertia weight       & $w_{\min}$   & 0.4  \\
+Cognitive coefficient    & $c_1$        & 2.05 \\
+Social coefficient       & $c_2$        & 2.05 \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Operating Principle}
+
+Each particle $i$ at iteration $t$ carries three pieces of state:
+\begin{itemize}
+  \item \textbf{Position} $\mathbf{x}_i^{(t)}$: the current candidate solution in the
+        $D$-dimensional search space.
+  \item \textbf{Velocity} $\mathbf{v}_i^{(t)}$: the direction and step size for the next
+        positional update.
+  \item \textbf{Personal best} $\mathbf{p}_i^{\text{best}}$: the best position particle $i$
+        has ever visited, together with its cost $f(\mathbf{p}_i^{\text{best}})$.
+\end{itemize}
+A single \textbf{global best} $\mathbf{g}^{\text{best}}$ records the lowest-cost position
+found by any particle across all iterations. At every step, each particle is pulled toward
+both its own personal best and the global best, while inertia carries it along its previous
+trajectory. The inertia weight $w$ decays linearly iteration by iteration, shifting the swarm
+from broad exploration early on to fine-grained exploitation by the final iteration.
+
+For TSP, positions are represented as continuous vectors in $[0,1]^n$ and converted to valid
+permutations via \texttt{pos\_to\_tour} (index-sorting). Velocities are clamped to
+$[-0.4,\,0.4]$ per dimension to maintain permutation stability.
+
+\textbf{Update Mechanism}
+
+At each iteration $t$, the inertia weight is first computed:
+\[
+w^{(t)} = w_{\max} - \frac{w_{\max} - w_{\min}}{G - 1}\cdot t
+\]
+
+Then, for every particle $i$, independent random vectors $\mathbf{r}_1,\mathbf{r}_2
+\sim \mathcal{U}(0,1)^D$ are sampled and the velocity is updated:
+\[
+\mathbf{v}_i^{(t+1)} =
+  \underbrace{w^{(t)}\,\mathbf{v}_i^{(t)}}_{\text{inertia}}
++ \underbrace{c_1\,\mathbf{r}_1 \odot \!\left(\mathbf{p}_i^{\text{best}} - \mathbf{x}_i^{(t)}\right)}_{\text{cognitive pull}}
++ \underbrace{c_2\,\mathbf{r}_2 \odot \!\left(\mathbf{g}^{\text{best}} - \mathbf{x}_i^{(t)}\right)}_{\text{social pull}}
+\]
+
+The position is then updated and clipped to the feasible domain:
+\[
+\mathbf{x}_i^{(t+1)} = \mathrm{clip}\!\left(\mathbf{x}_i^{(t)} + \mathbf{v}_i^{(t+1)},\;
+                        \mathbf{lb},\; \mathbf{ub}\right)
+\]
+
+Personal and global bests are refreshed whenever a strictly lower cost is found.
+The fitness value returned to the caller is transformed as:
+\[
+\text{fitness} =
+\begin{cases}
+\dfrac{1}{f(\mathbf{x}) + 1} & \text{if } f(\mathbf{x}) \ge 0 \quad (\text{continuous})\\[6pt]
+f(\mathbf{x})                 & \text{(TSP, raw tour cost)}
+\end{cases}
+\]
+
+\textbf{Algorithm}
+
+\begin{algorithm}[H]
+\caption{Particle Swarm Optimization}
+\label{alg:pso}
+\begin{algorithmic}[1]
+\REQUIRE $f(\cdot)$, bounds $[\mathbf{lb},\mathbf{ub}]$, $N$, $G$,
+         $w_{\max}$, $w_{\min}$, $c_1$, $c_2$
+\ENSURE Best solution $\mathbf{g}^{\text{best}}$
+
+\STATE $\mathbf{x}_i \sim \mathcal{U}(\mathbf{lb},\mathbf{ub})$,\;
+       $\mathbf{v}_i \sim \mathcal{U}(-1,1)^D$ \quad for all $i = 1,\ldots,N$
+\STATE $\mathbf{p}_i^{\text{best}} \leftarrow \mathbf{x}_i$,\;
+       $\text{cost}_i \leftarrow f(\mathbf{x}_i)$ \quad for all $i$
+\STATE $\mathbf{g}^{\text{best}} \leftarrow \mathbf{x}_{i^*}$ where
+       $i^* = \arg\min_i \text{cost}_i$
+
+\FOR{$t = 0$ \textbf{to} $G-1$}
+  \STATE $w \leftarrow w_{\max} - (w_{\max}-w_{\min})\cdot t\,/\,(G-1)$
+  \FOR{$i = 1$ \textbf{to} $N$}
+    \STATE $\mathbf{r}_1, \mathbf{r}_2 \sim \mathcal{U}(0,1)^D$
+    \STATE $\mathbf{v}_i \leftarrow w\,\mathbf{v}_i
+           + c_1\,\mathbf{r}_1 \odot (\mathbf{p}_i^{\text{best}}-\mathbf{x}_i)
+           + c_2\,\mathbf{r}_2 \odot (\mathbf{g}^{\text{best}}-\mathbf{x}_i)$
+    \STATE $\mathbf{x}_i \leftarrow \mathrm{clip}(\mathbf{x}_i + \mathbf{v}_i,\,
+           \mathbf{lb},\,\mathbf{ub})$
+    \STATE $c \leftarrow f(\mathbf{x}_i)$
+    \IF{$c < \text{cost}_i$}
+      \STATE $\mathbf{p}_i^{\text{best}} \leftarrow \mathbf{x}_i$;\;
+             $\text{cost}_i \leftarrow c$
+      \IF{$c < f(\mathbf{g}^{\text{best}})$}
+        \STATE $\mathbf{g}^{\text{best}} \leftarrow \mathbf{x}_i$
+      \ENDIF
+    \ENDIF
+  \ENDFOR
+\ENDFOR
+\RETURN $\mathbf{g}^{\text{best}}$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Complexity Analysis}
+
+\begin{itemize}
+  \item \textbf{Time Complexity:} $O(G \cdot N \cdot D)$ per run (excluding the cost of $f$).
+        Each of the $G$ iterations updates $N$ particles, each requiring $O(D)$ arithmetic
+        operations for the velocity and position updates. Fitness evaluation adds $O(G\cdot N
+        \cdot F)$ where $F$ is the cost of a single call to $f$.
+  \item \textbf{Space Complexity:} $O(N \cdot D)$ to store positions $\mathbf{x}_i$,
+        velocities $\mathbf{v}_i$, and personal bests $\mathbf{p}_i^{\text{best}}$ for all
+        $N$ particles.
+\end{itemize}
+
+\textbf{Advantages}
+
+\begin{itemize}
+  \item \textbf{Simple and low-overhead:} Only six hyperparameters are required
+        ($N$, $G$, $w_{\max}$, $w_{\min}$, $c_1$, $c_2$), and the per-iteration cost is
+        linear in both $N$ and $D$.
+  \item \textbf{Fast convergence on smooth landscapes:} The linearly decaying inertia weight
+        shifts the swarm from global exploration ($w\approx 0.9$) to local exploitation
+        ($w\approx 0.4$) automatically, making PSO highly effective on unimodal and
+        near-convex functions such as Sphere and Ackley.
+  \item \textbf{Derivative-free:} Only objective function evaluations are required; no
+        gradient information is needed.
+  \item \textbf{Unified continuous/discrete interface:} The \texttt{pos\_to\_tour}
+        (index-sorting) encoding allows the same velocity-update rule to handle both
+        continuous and TSP problems without structural changes to the algorithm.
+\end{itemize}
+
+\textbf{Disadvantages}
+
+\begin{itemize}
+  \item \textbf{Premature convergence on multimodal landscapes:} Because all particles share
+        a single global best, the swarm tends to collapse around one attractor. On heavily
+        multimodal functions like Rastrigin, PSO is frequently outperformed by methods that
+        maintain greater population diversity (e.g., GA).
+  \item \textbf{TSP velocity instability without clamping:} In the discrete encoding,
+        unbounded velocities cause positions to leave $[0,1]^n$ and produce inconsistent
+        permutations. The $[-0.4, 0.4]$ clamp resolves this but reduces the effective step
+        size and slows exploration.
+  \item \textbf{Stagnation near the end:} As $w$ approaches $w_{\min}=0.4$, the inertia term
+        shrinks and the swarm loses momentum. If $\mathbf{g}^{\text{best}}$ has not been
+        updated for many iterations, the remaining movement is dominated by small cognitive
+        and social corrections and the search effectively halts.
+  \item \textbf{Parameter sensitivity:} The choice of $c_1=c_2=2.05$ satisfies the
+        constriction-factor stability condition but may not be optimal for every problem;
+        re-tuning is often needed for best performance.
+\end{itemize}
+
+% =========================================================
+\subsubsection{Ant Colony Optimization (ACO)}
+% =========================================================
+
+\textbf{Introduction}
+
+Ant Colony Optimization (ACO) is a population-based metaheuristic proposed by Marco Dorigo in
+1992, inspired by the pheromone-based foraging behavior of real ant colonies. Shorter paths
+receive disproportionately more pheromone deposits per unit time, creating a self-reinforcing
+feedback loop that gradually concentrates traffic on high-quality routes. This implementation
+provides two distinct solvers selected automatically based on the problem type: a
+\textit{discrete solver} for graph problems (TSP) that maintains a pheromone matrix and builds
+probabilistic tours, and a \textit{continuous solver} (ACO$_\mathbb{R}$) that maintains a
+ranked solution archive and samples new candidates from Gaussian kernels.
+
+Default hyperparameters:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Default value} \\
+\hline
+Ant / sample count      & $N$            & 10   \\
+Number of iterations    & $G$            & 100  \\
+Pheromone influence     & $\alpha$       & 1.0  \\
+Heuristic influence     & $\beta$        & 2.0  \\
+Evaporation rate        & $\rho$         & 0.5  \\
+Pheromone constant      & $Q$            & 100  \\
+Archive size            & $k$            & 50   \\
+Convergence speed       & $\xi$          & 0.85 \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Operating Principle}
+
+\textbf{Discrete mode (TSP).}
+Each ant starts from a random city and constructs a complete tour by iteratively selecting the
+next unvisited city through roulette-wheel selection. The selection probability for city $j$
+from city $i$ is proportional to a combination of pheromone strength $\tau_{ij}$ and inverse
+distance (heuristic) $\eta_{ij}=1/d_{ij}$. After all $N$ ants complete their tours, the
+pheromone matrix is first decayed globally by factor $(1-\rho)$ and then reinforced on every
+edge traversed, with deposit proportional to $Q/L_k$ where $L_k$ is the length of ant $k$'s
+tour. Both directions of each edge receive the same deposit, reflecting the undirected nature
+of TSP.
+
+\textbf{Continuous mode (ACO$_\mathbb{R}$).}
+The algorithm initialises an archive of $k$ solutions drawn uniformly from the search space.
+Solutions are ranked by objective value and each rank $r \in \{0,\ldots,k-1\}$ is assigned a
+Gaussian weight:
+\[
+w_r = \frac{1}{k\,\xi\,\sqrt{2\pi}}\exp\!\left(-\frac{r^2}{2\,\xi^2\,k^2}\right)
+\]
+Weights are normalised to sum to one. At each iteration $N$ new candidates are generated: for
+each new solution, a source archive index is drawn according to the normalised weights, and
+each dimension is sampled from a Gaussian centred at the corresponding archive value with a
+standard deviation computed as a weighted average of absolute deviations across the archive
+(floored at $1\%$ of the domain width). The archive is updated by merging old and new
+solutions and retaining the $k$ best.
+
+\textbf{Update Mechanism}
+
+\textbf{Discrete ACO --- edge selection probability:}
+\[
+p_{ij} = \frac{[\tau_{ij}]^\alpha\,[\eta_{ij}]^\beta}
+              {\displaystyle\sum_{l\in\mathcal{U}}[\tau_{il}]^\alpha\,[\eta_{il}]^\beta},
+\quad j\in\mathcal{U}
+\]
+where $\mathcal{U}$ is the set of unvisited cities. Selection is performed by
+\texttt{\_roulette\_select}, which normalises probabilities to unity before drawing from a
+multinomial (using \texttt{numpy.random.choice}), eliminating floating-point bias.
+
+\textbf{Discrete ACO --- pheromone update (applied after all ants finish):}
+\[
+\tau_{ij} \;\leftarrow\; (1-\rho)\,\tau_{ij}
+         + \sum_{k:\,(i,j)\in\text{tour}_k} \frac{Q}{L_k}
+\]
+Both $\tau_{ij}$ and $\tau_{ji}$ receive the deposit because TSP edges are symmetric.
+
+\textbf{Continuous ACO --- new solution generation for dimension $d$:}
+\[
+\sigma_d = \xi\sum_{i=0}^{k-1} w_i\,\bigl|s_i^{(d)} - s_{\text{src}}^{(d)}\bigr|,
+\quad \sigma_d \leftarrow \max\!\left(\sigma_d,\; 0.01\,(ub_d - lb_d)\right)
+\]
+\[
+x_d^{\text{new}} \sim \mathcal{N}\!\left(s_{\text{src}}^{(d)},\,\sigma_d^2\right),
+\quad \text{clipped to } [lb_d, ub_d]
+\]
+where $s_{\text{src}}$ is the archive solution selected by the pheromone weights.
+
+\textbf{Algorithm}
+
+\begin{algorithm}[H]
+\caption{ACO --- Discrete solver (TSP)}
+\label{alg:aco-discrete}
+\begin{algorithmic}[1]
+\REQUIRE $f(\cdot)$, distance matrix $D$, $n$ cities, $N$, $G$, $\alpha$, $\beta$, $\rho$, $Q$
+\ENSURE Best tour $\mathbf{x}^*$, best cost $f^*$
+
+\STATE $\tau_{ij} \leftarrow 1$ for all $(i,j)$;\quad
+       $\mathbf{x}^* \leftarrow \text{None}$;\quad $f^* \leftarrow \infty$
+\FOR{$g = 1$ \textbf{to} $G$}
+  \FOR{$k = 1$ \textbf{to} $N$} \COMMENT{Each ant builds one tour}
+    \STATE $c \leftarrow \text{random city}$;\quad
+           $\text{tour} \leftarrow [c]$;\quad
+           $\mathcal{U} \leftarrow \{0,\ldots,n-1\}\setminus\{c\}$
+    \WHILE{$\mathcal{U} \neq \emptyset$}
+      \STATE $\eta_{cj} \leftarrow 1\,/\,\max(D_{cj},\,10^{-3})$ for all $j\in\mathcal{U}$
+      \STATE $p_{cj} \leftarrow \tau_{cj}^\alpha\,\eta_{cj}^\beta\;/\;
+             \sum_{l\in\mathcal{U}}\tau_{cl}^\alpha\,\eta_{cl}^\beta$
+      \STATE $c \leftarrow \texttt{roulette\_select}(p)$;\quad
+             $\text{tour} \leftarrow \text{tour}\,{+\!\!+}\,[c]$;\quad
+             $\mathcal{U} \leftarrow \mathcal{U}\setminus\{c\}$
+    \ENDWHILE
+    \STATE $L_k \leftarrow f(\text{tour})$
+    \IF{$L_k < f^*$} \STATE $f^*\leftarrow L_k$;\; $\mathbf{x}^*\leftarrow\text{tour}$
+    \ENDIF
+  \ENDFOR
+  \STATE $\tau_{ij} \leftarrow (1-\rho)\,\tau_{ij}$ for all $(i,j)$ \COMMENT{Global evaporation}
+  \FOR{each ant $k$}
+    \STATE $\delta \leftarrow Q\,/\,L_k$
+    \FOR{each edge $(i,j)$ in $\text{tour}_k$}
+      \STATE $\tau_{ij} \mathrel{+}= \delta$;\quad $\tau_{ji} \mathrel{+}= \delta$
+    \ENDFOR
+  \ENDFOR
+\ENDFOR
+\RETURN $\mathbf{x}^*$, $f^*$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{ACO --- Continuous solver (ACO$_\mathbb{R}$)}
+\label{alg:aco-cont}
+\begin{algorithmic}[1]
+\REQUIRE $f(\cdot)$, bounds $[\mathbf{lb},\mathbf{ub}]$, $N$, $G$, $k$, $\xi$
+\ENSURE Best solution $\mathbf{x}^*$
+
+\STATE Initialise archive $\mathcal{A} \leftarrow$ $k$ random solutions; sort by $f$
+\STATE $\mathbf{x}^* \leftarrow \mathcal{A}[0].\mathbf{s}$;\quad
+       $f^* \leftarrow f(\mathbf{x}^*)$
+\FOR{$g = 1$ \textbf{to} $G$}
+  \STATE Compute $w_r \propto \exp\!\bigl(-r^2/(2\xi^2 k^2)\bigr)$; normalise \COMMENT{Rank weights}
+  \FOR{sample $= 1$ \textbf{to} $N$}
+    \STATE $\text{src} \leftarrow \texttt{weighted\_choice}(w)$
+    \FOR{$d = 1$ \textbf{to} $D$}
+      \STATE $\sigma_d \leftarrow \max\!\Bigl(\xi\!\sum_i w_i\,|s_i^{(d)}-s_{\text{src}}^{(d)}|,\;
+             0.01(ub_d-lb_d)\Bigr)$
+      \STATE $x_d \leftarrow \mathrm{clip}\bigl(\mathcal{N}(s_{\text{src}}^{(d)},\sigma_d^2),\,
+             lb_d,\,ub_d\bigr)$
+    \ENDFOR
+    \IF{$f(\mathbf{x}) < f^*$}
+      \STATE $f^* \leftarrow f(\mathbf{x})$;\; $\mathbf{x}^* \leftarrow \mathbf{x}$
+    \ENDIF
+  \ENDFOR
+  \STATE $\mathcal{A} \leftarrow \text{top-}k\text{ of }\mathcal{A}\cup\{\text{new solutions}\}$
+\ENDFOR
+\RETURN $\mathbf{x}^*$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Complexity Analysis}
+
+\textbf{Discrete ACO (TSP):}
+\begin{itemize}
+  \item \textbf{Time Complexity:} $O(G\cdot N\cdot n^2)$. Each of the $N$ ants visits $n$
+        cities and at each step computes selection probabilities over $O(n)$ remaining
+        candidates. The pheromone update is $O(N\cdot n)$ per iteration, dominated by tour
+        construction.
+  \item \textbf{Space Complexity:} $O(n^2)$ for the pheromone matrix $\boldsymbol{\tau}$ and
+        the distance matrix.
+\end{itemize}
+
+\textbf{Continuous ACO (ACO$_\mathbb{R}$):}
+\begin{itemize}
+  \item \textbf{Time Complexity:} $O(G\cdot(N\cdot k\cdot D + k\log k))$. Generating each of
+        the $N$ new solutions costs $O(k\cdot D)$ (computing $\sigma_d$ requires summing over
+        all $k$ archive members for each of $D$ dimensions). Sorting the merged archive costs
+        $O(k\log k)$.
+  \item \textbf{Space Complexity:} $O(k\cdot D)$ for the solution archive.
+\end{itemize}
+
+\textbf{Advantages}
+
+\begin{itemize}
+  \item \textbf{Purpose-built for TSP:} The pheromone matrix lives directly on graph edges,
+        so every deposit immediately encodes route quality; probabilistic tour construction
+        guarantees feasible permutations without any repair step.
+  \item \textbf{Normalised roulette-wheel selection:} The \texttt{\_roulette\_select}
+        implementation explicitly normalises probabilities with NumPy before sampling,
+        eliminating the floating-point rounding errors that accumulate in naive cumulative-sum
+        approaches.
+  \item \textbf{Adaptive bandwidth in continuous mode:} The per-dimension standard deviation
+        $\sigma_d$ shrinks as the archive converges, automatically narrowing the search to
+        exploit promising regions without requiring a hand-tuned cooling schedule.
+  \item \textbf{Symmetric pheromone update:} Depositing on both $\tau_{ij}$ and $\tau_{ji}$
+        after each tour correctly reflects the undirected structure of TSP, doubling
+        reinforcement speed on good edges.
+\end{itemize}
+
+\textbf{Disadvantages}
+
+\begin{itemize}
+  \item \textbf{Quadratic tour-construction cost:} With $N$ ants and $n$ cities per tour, the
+        discrete solver scales as $O(N\cdot n^2)$ per iteration, becoming prohibitive for
+        large instances.
+  \item \textbf{Stagnation through pheromone concentration:} If $\rho$ is set too small,
+        pheromone on early good edges accumulates rapidly and locks all ants into a sub-optimal
+        route before the colony has explored enough of the space.
+  \item \textbf{Slow per-sample cost in continuous mode:} Computing $\sigma_d$ requires
+        $O(k)$ operations \emph{per dimension per sample}, making ACO$_\mathbb{R}$ noticeably
+        slower per iteration than PSO or Cuckoo Search at the same population size.
+  \item \textbf{Many coupled parameters:} The discrete mode alone has four interacting
+        hyperparameters ($\alpha$, $\beta$, $\rho$, $Q$); their joint effect on convergence
+        speed versus solution quality is non-trivial to predict, requiring careful tuning or
+        grid search.
+\end{itemize}
+
+% =========================================================
+\subsubsection{Firefly Algorithm (FA)}
+% =========================================================
+
+\textbf{Introduction}
+
+The Firefly Algorithm (FA) is a swarm-based metaheuristic proposed by Xin-She Yang in 2008,
+inspired by the bioluminescent signalling of fireflies. Every firefly represents a candidate
+solution; its \textit{brightness} is inversely proportional to the objective value, so a
+brighter firefly corresponds to a better solution. The core movement rule is that a dimmer
+firefly is attracted to --- and moves toward --- its single \textit{most attractive} brighter
+neighbour (the one with the highest attractiveness $\beta$, not the globally brightest).
+Fireflies with no brighter neighbour perform an independent random walk. This implementation
+handles both continuous and TSP problems using the same movement equations; for TSP, positions
+live in $[0,1]^n$ and are mapped to tours via index-sorting (\texttt{pos\_to\_tour}).
+
+Default hyperparameters:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Default value} \\
+\hline
+Population size        & $N$          & 50   \\
+Number of iterations   & $G$          & 100  \\
+Initial step size      & $\alpha_0$   & 0.5  \\
+Base attractiveness    & $\beta_0$    & 1.0  \\
+Light absorption coeff.& $\gamma$     & 1.0  \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Operating Principle}
+
+The algorithm maintains a population of $N$ fireflies. At each iteration:
+\begin{enumerate}
+  \item The randomisation step size decays geometrically: $\alpha^{(t)} = \alpha_0 \cdot
+        0.97^t$, gradually narrowing the perturbation radius.
+  \item A copy of the current population is created (\texttt{new\_fireflies}). Each firefly
+        $i$ scans all other fireflies $j$ that are brighter (lower cost). Among these it
+        selects the \textit{single} most attractive neighbour --- the one with the highest
+        $\beta_0 e^{-\gamma_{\text{eff}}\,r_{ij}^2}$ --- and moves toward it plus a random
+        perturbation.
+  \item If no brighter neighbour exists (firefly is the current best or locally dominant),
+        it performs a larger random walk with amplitude $2\alpha$.
+  \item After all moves, fitness is re-evaluated and the global best is updated.
+\end{enumerate}
+For continuous problems, $\gamma$ is normalised by the squared Euclidean diameter of the
+search domain to make attractiveness scale-invariant. For TSP, the diameter is approximated as
+$\sqrt{n}$ (positions in $[0,1]^n$).
+
+\textbf{Update Mechanism}
+
+\textbf{Scale-normalised absorption coefficient:}
+\[
+\gamma_{\text{eff}} =
+\begin{cases}
+\gamma\,/\,\|\mathbf{ub}-\mathbf{lb}\|_2^2 & \text{continuous}\\[4pt]
+\gamma\,/\,n                               & \text{TSP, } d\approx\sqrt{n}
+\end{cases}
+\]
+
+\textbf{Attractiveness of firefly $j$ as seen by firefly $i$:}
+\[
+\beta_{ij} = \beta_0\,\exp\!\bigl(-\gamma_{\text{eff}}\,r_{ij}^2\bigr),
+\quad r_{ij} = \|\mathbf{x}_i - \mathbf{x}_j\|_2
+\]
+
+\textbf{Decaying step size:}
+\[
+\alpha^{(t)} = \alpha_0 \cdot 0.97^{t}
+\]
+
+\textbf{Position update} (firefly $i$ moves toward its best attractor $j^*$):
+\[
+j^* = \arg\max_{\{j\,:\,f(\mathbf{x}_j)<f(\mathbf{x}_i)\}}\beta_{ij}
+\]
+\[
+\mathbf{x}_i^{\text{new}} =
+\begin{cases}
+\mathrm{clip}\!\left(\mathbf{x}_i + \beta_{ij^*}(\mathbf{x}_{j^*}-\mathbf{x}_i)
+                     + \alpha^{(t)}\bigl(\mathbf{u}-0.5\bigr),\,\mathbf{lb},\,\mathbf{ub}\right)
+  & \text{if } j^* \text{ exists}\\[6pt]
+\mathrm{clip}\!\left(\mathbf{x}_i + 2\alpha^{(t)}\bigl(\mathbf{u}-0.5\bigr),\,
+                     \mathbf{lb},\,\mathbf{ub}\right)
+  & \text{otherwise (random walk)}
+\end{cases}
+\]
+where $\mathbf{u}\sim\mathcal{U}(0,1)^D$.
+
+The fitness transformation returned to the caller is:
+\[
+\text{fitness} =
+\begin{cases}
+1/(f(\mathbf{x})+1) & f(\mathbf{x})\ge 0 \text{ (continuous)}\\
+f(\mathbf{x})       & \text{TSP (raw cost)}
+\end{cases}
+\]
+
+\textbf{Algorithm}
+
+\begin{algorithm}[H]
+\caption{Firefly Algorithm}
+\label{alg:fa}
+\begin{algorithmic}[1]
+\REQUIRE $f(\cdot)$, bounds, $N$, $G$, $\alpha_0$, $\beta_0$, $\gamma$
+\ENSURE Best solution $\mathbf{x}^*$
+
+\STATE $\mathbf{x}_i \sim \mathcal{U}(\mathbf{lb},\mathbf{ub})$ for $i=1,\ldots,N$
+\STATE $\text{fit}_i \leftarrow f(\mathbf{x}_i)$;\quad
+       $\mathbf{x}^* \leftarrow \mathbf{x}_{i^*}$, $f^*\leftarrow \text{fit}_{i^*}$
+       where $i^*=\arg\min_i \text{fit}_i$
+\STATE Compute $\gamma_{\text{eff}}$
+
+\FOR{$t = 0$ \textbf{to} $G-1$}
+  \STATE $\alpha \leftarrow \alpha_0\cdot 0.97^{t}$
+  \STATE $\mathbf{x}^{\text{new}} \leftarrow \mathbf{x}$  \COMMENT{Copy current positions}
+  \FOR{$i = 1$ \textbf{to} $N$}
+    \STATE $j^* \leftarrow -1$;\quad $\beta^* \leftarrow -1$
+    \FOR{$j = 1$ \textbf{to} $N$, $j\neq i$}
+      \IF{$\text{fit}_j < \text{fit}_i$}
+        \STATE $r \leftarrow \|\mathbf{x}_i - \mathbf{x}_j\|_2$;\quad
+               $\beta \leftarrow \beta_0 e^{-\gamma_{\text{eff}}r^2}$
+        \IF{$\beta > \beta^*$}
+          \STATE $\beta^* \leftarrow \beta$;\; $j^* \leftarrow j$
+        \ENDIF
+      \ENDIF
+    \ENDFOR
+    \IF{$j^* \ge 0$}
+      \STATE $\mathbf{x}_i^{\text{new}} \leftarrow
+             \mathrm{clip}(\mathbf{x}_i + \beta^*(\mathbf{x}_{j^*}-\mathbf{x}_i)
+             + \alpha(\mathbf{u}-0.5),\,\mathbf{lb},\,\mathbf{ub})$
+    \ELSE
+      \STATE $\mathbf{x}_i^{\text{new}} \leftarrow
+             \mathrm{clip}(\mathbf{x}_i + 2\alpha(\mathbf{u}-0.5),\,\mathbf{lb},\,\mathbf{ub})$
+    \ENDIF
+  \ENDFOR
+  \STATE $\mathbf{x} \leftarrow \mathbf{x}^{\text{new}}$;\quad
+         $\text{fit}_i \leftarrow f(\mathbf{x}_i)$ for all $i$
+  \STATE Update $\mathbf{x}^*$, $f^*$ if improved
+\ENDFOR
+\RETURN $\mathbf{x}^*$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Complexity Analysis}
+
+\begin{itemize}
+  \item \textbf{Time Complexity:} $O(G\cdot N^2\cdot D)$. The innermost double loop
+        ($N\times N$ firefly comparisons) executes $G$ times. Each pairwise comparison
+        computes a $D$-dimensional Euclidean distance in $O(D)$, giving $O(G\cdot N^2\cdot D)$
+        for movement alone. Fitness re-evaluation costs $O(G\cdot N\cdot F)$.
+  \item \textbf{Space Complexity:} $O(N\cdot D)$ for the position array and its copy
+        (\texttt{new\_fireflies}).
+\end{itemize}
+
+\textbf{Advantages}
+
+\begin{itemize}
+  \item \textbf{Single-best-attractor rule reduces noise:} By moving toward only the
+        \textit{most attractive} brighter neighbour (rather than a weighted sum of all of them),
+        each update has a clear, consistent direction; this avoids the conflicting forces
+        that arise when many bright fireflies pull in different directions simultaneously.
+  \item \textbf{Automatic sub-swarm formation:} Because attractiveness decays with distance,
+        nearby fireflies tend to cluster around shared local optima while distant sub-groups
+        explore independently, providing natural multi-start behaviour on multimodal landscapes.
+  \item \textbf{Scale-invariant absorption:} Normalising $\gamma$ by the squared domain
+        diameter makes the algorithm's exploration radius consistent regardless of whether the
+        search space spans $[-5,5]^D$ or $[-500,500]^D$.
+  \item \textbf{Adaptive step decay:} The $0.97^t$ schedule requires no additional parameter
+        and smoothly narrows the random perturbation from coarse exploration to fine
+        exploitation without manual tuning.
+\end{itemize}
+
+\textbf{Disadvantages}
+
+\begin{itemize}
+  \item \textbf{Quadratic per-iteration cost:} The $O(N^2)$ pairwise scan makes FA
+        substantially slower than PSO ($O(N)$) or the discrete ACO ($O(N\cdot n)$) at equal
+        population sizes. With the default $N=50$, each iteration requires 2\,450 pairwise
+        distance computations.
+  \item \textbf{Poor scalability:} Doubling $N$ quadruples the movement cost. For large
+        populations or high-dimensional problems, runtime becomes prohibitive.
+  \item \textbf{Sensitivity to $\gamma$:} If $\gamma$ is too large, $\beta_{ij}\approx 0$ for
+        all but the nearest firefly, turning the algorithm into a purely local search with very
+        limited global exploration. If $\gamma$ is too small, all fireflies feel equal
+        attraction regardless of distance, collapsing into PSO-like behaviour without the
+        efficiency of PSO.
+  \item \textbf{Collapse on narrow-valley functions:} On Rosenbrock, the attraction-based
+        jumps ($\beta\cdot(\mathbf{x}_{j^*}-\mathbf{x}_i)$) tend to overshoot the narrow
+        curved valley, pushing positions far from the optimum and causing objective values
+        to diverge to extremely large numbers, as confirmed experimentally.
+\end{itemize}
