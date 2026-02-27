@@ -8,7 +8,7 @@ class KnapsackProblem(BaseProblem):
         self.weights =None
         self.values = None
         self.capacity = None
-        self.seed = None
+        self.seed = None # for later test case generation
         self.filepath = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
         # Load from filepath
         self.load_from_file(self.filepath)

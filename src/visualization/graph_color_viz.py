@@ -32,7 +32,7 @@ class GraphColoringVisualizer(BaseVisualizer):
 
             colors = np.round(current_solution).astype(int)
 
-            # Live Metrics
+            # Metrics
             conflicts = sum(1 for u, v in self.problem.edges if colors[u] == colors[v])
             unique_colors = len(np.unique(colors))
 

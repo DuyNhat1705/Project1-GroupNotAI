@@ -1,3 +1,5 @@
+# This is a heavy-load test case for benchmark.py, avoid using for mp4 visualizer
+
 # --- City Names ---
 City_1
 City_2

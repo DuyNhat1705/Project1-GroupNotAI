@@ -49,14 +49,14 @@ class KnapsackVisualizer(BaseVisualizer):
             solution = self.history[frame]
             selected_indices = np.where(solution == 1)[0]
 
-            current_weight = 0
-            current_value = 0
+            cur_weight = 0
+            cur_value = 0
 
             # ========================================
             # PANEL 1: KNAPSACK CONTENT (BAR)
             # ========================================
             ax1.set_xlim(-0.5, 0.5)
-            # Dynamic Y-limit to show overflow if it happens
+            # Dynamic Y-limit to show overflow if happens
             max_y = max(self.capacity * 1.2, np.sum(solution * self.weights) + 10)
             ax1.set_ylim(0, max_y)
             ax1.set_xticks([])
@@ -69,12 +69,12 @@ class KnapsackVisualizer(BaseVisualizer):
             ax1.legend(loc="upper left")
 
             # Stack items
-            bottom = 0
+            bottom = 0 # y-coord for next item
             for idx in selected_indices:
                 w = self.weights[idx]
                 v = self.values[idx]
 
-                # Draw the item block
+                # Draw item block
                 ax1.bar(0, w, bottom=bottom, color=colors[idx], edgecolor='black', width=0.6)
 
                 # Text label inside block (if tall enough to fit text)
@@ -83,17 +83,17 @@ class KnapsackVisualizer(BaseVisualizer):
                              color='black', fontweight='bold')
 
                 bottom += w
-                current_value += v
+                cur_value += v
 
-            current_weight = bottom
+            cur_weight = bottom
 
             # Status Warning (Overweight/Valid)
-            if current_weight > self.capacity:
+            if cur_weight > self.capacity:
                 status_color = 'red'
-                status_msg = f"OVERWEIGHT!\nWeight: {current_weight}\nValue: 0 (Invalid)"
+                status_msg = f"OVERWEIGHT!\nWeight: {cur_weight}\nValue: 0 (Invalid)"
             else:
                 status_color = 'green'
-                status_msg = f"VALID\nWeight: {current_weight}\nValue: {current_value}"
+                status_msg = f"VALID\nWeight: {cur_weight}\nValue: {cur_value}"
 
             # Display total weight/value
             ax1.text(0, max_y * -0.05, status_msg, ha='center', va='top', fontsize=12, fontweight='bold',

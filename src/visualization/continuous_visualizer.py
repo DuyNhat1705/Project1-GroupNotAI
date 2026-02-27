@@ -28,7 +28,7 @@ class ContinuousVisualizer(BaseVisualizer):
             return
 
         print(f"[VIS] Rendering animation: {self.title}")
-        print(f"[VIS] Output → {self.save_path}")
+        print(f"[VIS] Output -> {self.save_path}")
 
         # ===== FIGURE LAYOUT  =====
         fig = plt.figure(figsize=(16, 9))

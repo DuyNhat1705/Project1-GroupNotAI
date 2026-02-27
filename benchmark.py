@@ -157,7 +157,7 @@ def generate_reports(stats, prob_name, optimum=None):
             }
         }
 
-    # THE FIX: Save JSON into the new subfolder
+    # Save JSON into the new subfolder
     json_path = f"{out_dir}/{prob_name}_report.json"
     with open(json_path, "w") as f:
         json.dump(report_data, f, indent=4)
@@ -176,7 +176,7 @@ def generate_reports(stats, prob_name, optimum=None):
     # --- CONVERGENCE (Line Plot) ---
     try:
         plt.figure(figsize=(8, 6))
-        line_styles = ['-', '--', '-.', ':']
+        line_styles = ['-', '--', '-.', ':'] # roulette many styles of line so that one will not cover others
 
         for idx, algo in enumerate(valid_labels):
             curves = [c for c in stats[algo]['convergence'] if c]
@@ -184,7 +184,7 @@ def generate_reports(stats, prob_name, optimum=None):
                 if not isinstance(curves[0][0], (int, float, np.floating, np.integer)):
                     continue
 
-                # Safety padding: just in case one run of this specific algo stops early
+                # Safety padding: just in case it stops early
                 max_len = max(len(c) for c in curves)
                 padded = [c + [c[-1]] * (max_len - len(c)) for c in curves]
 
@@ -228,7 +228,6 @@ def generate_reports(stats, prob_name, optimum=None):
         plt.boxplot(fitness_data, patch_artist=True)
         plt.xticks(ticks=range(1, len(valid_labels) + 1), labels=[l.upper() for l in valid_labels])
 
-        # THE FIX: Added Dimension to Title
         plt.title(f"Robustness - {prob_name.upper()}")
         plt.ylabel("Best Fitness")
         plt.grid(True, linestyle='--', alpha=0.6)

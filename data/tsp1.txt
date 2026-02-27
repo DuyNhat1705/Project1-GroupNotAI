@@ -1,5 +1,5 @@
 # infinity cost will be represented as large number (999999.0) instead of NaN, so the input edge cost should less than 10000
-
+# this test is suitable for illustration video
 # --- City Names ---
 Seattle
 San Francisco
@@ -11,11 +11,6 @@ Paris
 Amsterdam
 Frankfurt
 Madrid
-Tokyo
-Seoul
-Shanghai
-Hong Kong
-Singapore
 
 # --- Distance Matrix (10x10) ---
 0    679  959  1021 1735 4784 5021 4870 5110 5250 4781 5210 5710 6500 8050

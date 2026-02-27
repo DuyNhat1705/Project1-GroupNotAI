@@ -10,9 +10,9 @@ class TSPVisualizer(BaseVisualizer):
 
         if isinstance(history, dict):
             if "population" in history:
-                extracted_history = history["population"]
+                extracted_history = history["population"] # swarm algo
             elif "explored" in history:
-                extracted_history = history["explored"]
+                extracted_history = history["explored"] # SA and HC
             else:
                 extracted_history = []
         else:
@@ -25,14 +25,14 @@ class TSPVisualizer(BaseVisualizer):
         self.city_names = getattr(problem, 'city_names', [])
         self.num_cities = problem.dimension
 
-        # THE FIX 2: Safe Data Parsing for HC, SA, and others
+        # Safe Data Parsing
         self.best_costs = []
         self.solutions = []
 
         for item in self.history:
             if isinstance(item, tuple) and len(item) >= 2:
                 path_data = item[0]
-                cost = float(item[1])  # Safely extract the numeric cost
+                cost = float(item[1])  # extract the numeric cost
 
                 # SA passes [current_path, best_path]
                 if isinstance(path_data, list) and len(path_data) == 2:
@@ -64,7 +64,7 @@ class TSPVisualizer(BaseVisualizer):
         ax1.set_yticks([])
         ax1.axis('off')
 
-        # Draw City Nodes
+        # Draw City Nodes (arranged in circle)
         ax1.scatter(self.coords[:, 0], self.coords[:, 1], c='red', s=120, edgecolor='black', zorder=5)
 
         # City Names
@@ -85,7 +85,7 @@ class TSPVisualizer(BaseVisualizer):
         title_text = ax1.text(0.5, -0.05, "", transform=ax1.transAxes, ha='center', fontsize=13, fontweight='bold')
 
         # ==========================================
-        # PANEL 2: SETUP CONVERGENCE PLOT
+        # PANEL 2: CONVERGENCE PLOT
         # ==========================================
         ax2.set_xlim(0, len(self.history))
 
@@ -104,7 +104,7 @@ class TSPVisualizer(BaseVisualizer):
         # ---------- update function (for animation) ----------------
 
         def update(frame):
-            # This is now safely guaranteed to be a numpy array
+            # Guaranteed to be a numpy array
             current_path = self.solutions[frame].astype(int)
 
             # Append start node to end to close the loop
@@ -118,7 +118,7 @@ class TSPVisualizer(BaseVisualizer):
             # Update Edge Costs
             for i in range(self.num_cities):
                 u = current_path[i]
-                v = current_path[(i + 1) % self.num_cities]
+                v = current_path[(i + 1) % self.num_cities] # ensure valid node
 
                 # midpoint of the edge
                 x1, y1 = self.coords[u]
@@ -143,7 +143,7 @@ class TSPVisualizer(BaseVisualizer):
             return [line, title_text, curve, dot] + edge_labels
 
         total_frames = len(self.history)
-        step = max(1, total_frames // 300)
+        step = max(1, total_frames // 300) #frame-capping downsampler
         frames = range(0, total_frames, step)
 
         ani = animation.FuncAnimation(fig, update, frames=frames, interval=30, blit=False)

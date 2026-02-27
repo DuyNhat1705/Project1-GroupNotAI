@@ -5,7 +5,7 @@ from src.problems.base_problem import BaseProblem
 
 class GraphColoring(BaseProblem):
     def __init__(self, context = "coloring1", name="Graph Coloring"):
-        self.num_nodes = 0
+        self.num_nodes = 0 # adj list representaion
         self.num_edges = 0
         self.edges = []
         self.node_coords = {}  # later use coordinates for Matplotlib

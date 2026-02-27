@@ -26,7 +26,7 @@ class ShortestPathOnMaze(BaseProblem):
             start_raw = tuple(map(int, lines[0].split()))
             goal_raw = tuple(map(int, lines[1].split()))
 
-            # --- Assign to class properties ---
+            # Assign to class properties
             self.start = (start_raw[0], start_raw[1])
             self.goal = (goal_raw[0], goal_raw[1])
 

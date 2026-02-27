@@ -19,7 +19,7 @@ class SimulatedAnnealing(BaseAlgorithm):
         # Pass the merged dict to BaseAlgorithm
         super().__init__("Simulated Annealing", default_params)
         for key, val in default_params.items():
-            setattr(self, key, val)
+            setattr(self, key, val) #pass arguments from terminal
 
     def get_neighbor(self, cur_pos, lower, upper, cont_flag):
 
@@ -37,7 +37,7 @@ class SimulatedAnnealing(BaseAlgorithm):
 
         else:
             # Create a copy, do not change the current postion
-            bounds = [None, None]
+            bounds = [None, None] #initialize to prevent later error
 
             neigh = cur_pos.copy()
             n = len(neigh)
@@ -78,11 +78,11 @@ class SimulatedAnnealing(BaseAlgorithm):
 
         # log best evalutaion as list
         logger = Logger(self.name, run_id=seed)
-        logger.history["explored"] = []
+        logger.history["explored"] = [] # explored point
 
         #logger.history["explored"].append(([cur.copy(), best.copy()], best_fit))
 
-        logger.history["best_fitness"] = []
+        logger.history["best_fitness"] = [] # best evaluation
 
 
         for ite in range(self.params["num_iters"]):
