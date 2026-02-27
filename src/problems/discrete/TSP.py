@@ -5,16 +5,15 @@ from src.problems.base_problem import BaseProblem
 
 class TravelSalesmanProblem(BaseProblem):
     def __init__(self, context = "tsp1",name="TSP"):
-        self.city_names = [] # same as node but city is to distinguish with graph problem
+        self.city = [] # same as node but city is to distinguish with graph problem
         self.coords = None  # coords for visualization
         self.dist_mat = None # distance matrix
-        self.best_point = None # save the best distance (if available in dataset)
 
         self.filepath = os.path.join(BaseProblem.project_root, 'data', f'{context}.txt')
 
         self.load_from_file(self.filepath)
         dim = len(self.dist_mat)
-        self.coords = self.generate_circular_layout(dim)
+        self.coords = self.gen_layout(dim)
 
         super().__init__(name=name, dimension=dim, bounds=None, cont_flag=False)
 
@@ -24,20 +23,10 @@ class TravelSalesmanProblem(BaseProblem):
 
         names = []
         matrix_rows = []
-        best_distance = None
-        read_best = False
 
         for line in raw_lines:
             if line.startswith("#"):
-                if "Best Distance" in line: # take the given best score
-                    read_best = True
                 continue
-
-            if read_best:
-                best_distance = float(line)
-                read_best = False
-                continue
-
             try:
                 row = list(map(float, line.split()))
                 if len(row) > 1:
@@ -48,15 +37,14 @@ class TravelSalesmanProblem(BaseProblem):
         self.dist_mat = np.array(matrix_rows)
         self.dist_mat[np.isinf(self.dist_mat)] = 999999.0
 
-        self.city_names = names
-        self.best_point = best_distance
+        self.city = names
 
-        if len(self.city_names) != len(self.dist_mat):
-            print(f"[WARNING] Mismatch: {len(self.city_names)} names vs {len(self.dist_mat)} matrix rows.")
-            if len(self.city_names) == 0:
-                self.city_names = [f"City_{i}" for i in range(len(self.dist_mat))]
+        if len(self.city) != len(self.dist_mat):
+            print(f"[WARNING] Mismatch: {len(self.city)} names vs {len(self.dist_mat)} matrix rows")
+            if len(self.city) == 0:
+                self.city = [f"City_{i}" for i in range(len(self.dist_mat))]
 
-    def generate_circular_layout(self, n, radius=100):
+    def gen_layout(self, n, radius=100):
         """Generate (x, y) coordinates to arrange nodes in circle."""
         coords = []
         for i in range(n):

@@ -16,7 +16,7 @@ class KnapsackVisualizer(BaseVisualizer):
 
         # Pre-calculate best values for the convergence line plot
         self.best_values = []
-        current_max = 0
+        cur_max = 0
 
         for solution in self.history:
             # solution is a binary array
@@ -24,12 +24,12 @@ class KnapsackVisualizer(BaseVisualizer):
             # valid => calculate value / overweight => 0
             v = np.sum(solution * self.values) if w <= self.capacity else 0
 
-            if v > current_max:
-                current_max = v
-            self.best_values.append(current_max)
+            if v > cur_max:
+                cur_max = v
+            self.best_values.append(cur_max)
 
     def animate(self):
-        print(f"Visualization: {len(self.history)} num_iters...")
+        print(f"Visualization: {len(self.history)} iterations...")
 
         if not self.history:
             print("ERROR: Nothing to animate!")
@@ -61,7 +61,7 @@ class KnapsackVisualizer(BaseVisualizer):
             ax1.set_ylim(0, max_y)
             ax1.set_xticks([])
             ax1.set_ylabel("Weight", fontsize=12)
-            ax1.set_title(f"Knapsack Arrangement\nIteration: {frame + 1} / {len(self.history)}", fontsize=14)
+            ax1.set_title("Knapsack Arrangement", fontsize=14)
 
             # Capacity Limit Line
             ax1.axhline(self.capacity, color='red', linestyle='--', linewidth=3,
@@ -104,8 +104,8 @@ class KnapsackVisualizer(BaseVisualizer):
             # ========================================
             ax2.set_xlim(0, len(self.history))
             ax2.set_ylim(0, max(max(self.best_values) * 1.1, 10))
-            ax2.set_title("Total Max Value Over Time", fontsize=14)
-            ax2.set_xlabel("num_iters (Max Loops)", fontsize=12)
+            ax2.set_title("Optimization Progress", fontsize=14)
+            ax2.set_xlabel("Iteration: ", fontsize=12)
             ax2.set_ylabel("Best Value Found", fontsize=12)
             ax2.grid(True, linestyle='--', alpha=0.7)
 

@@ -33,5 +33,3 @@ python benchmark.py --problem ackley --runs 10 --dim 10 --params pop_size=20 num
 python benchmark.py --problem michalewicz --runs 10 --dim 10 --params pop_size=30 num_iters=50
 
 python benchmark.py --problem tsp1 --runs 10 --params pop_size=30 num_iters=100
-
-num_iters=100 pop_size=25

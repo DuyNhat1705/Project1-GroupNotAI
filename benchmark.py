@@ -21,28 +21,27 @@ COMPATIBILITY = {
     "maze": ["astar", "bfs", "dfs"],
     "knapsack": ["abc", "bfs", "cs", "tlbo"],
     "graphcoloring": ["bfs", "dfs"]
-}
+} #match problem with available algorithms
 
-def timeout_handler(flag):
+def timeout_handler(flag): #time limit = 30s (set below)
     """Sets the timeout flag and forces a KeyboardInterrupt in the main thread"""
     flag[0] = True
     _thread.interrupt_main()
 
-def determine_category(prob_name):
+def route_solver(prob_name): # route input testcase to problem
     prob = prob_name.lower()
     if prob in ["tsp1", "tsp2"]: return "tsp"
     if prob in ["maze1", "maze2"]: return "maze"
     if prob in ["knapsack1", "knapsack2"]: return "knapsack"
     if prob in ["graph1"]: return "graph"
     if prob in ["coloring1", "coloring2"]: return "graphcoloring"
-    return "continuous"
+    return "continuous" # fall back
 
 def extract_convergence(logger):
-    """Extracts the convergence curve, ensuring 1D numeric data."""
+    """Extracts convergence curve, ensure 1D numeric data."""
     if not logger: return []
-    if "best_cost" in logger.history:
-        return [float(val) for val in logger.history["best_cost"]]
-    elif "best_fitness" in logger.history:
+
+    if "best_fitness" in logger.history:
         return [float(val) for val in logger.history["best_fitness"]]
     return []
 
@@ -51,12 +50,12 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
     if algo_params is None:
         algo_params = {}
 
-    category = determine_category(prob_name)
+    category = route_solver(prob_name)
     compatible_algos = COMPATIBILITY.get(category, [])
 
     print(f"\nBenchmarking {prob_name.upper()} (Dim: {dim}) against: {compatible_algos}")
     if algo_params:
-        print(f"Custom Algorithm Params: {algo_params}")
+        print(f"Algorithm Params: {algo_params}")
 
     stats = {}
     optimum = None
@@ -69,12 +68,12 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
             problem = get_problem(prob_name, dimension=dim, seed=i)
 
             if optimum is None and hasattr(problem, "global_min"):
-                optimum = problem.global_min
+                optimum = problem.global_min # extract global min from continuous problem
 
             algo = get_algorithm(algo_name, **algo_params)
 
             timeout_flag = [False]
-            timer = threading.Timer(20.0, timeout_handler, args=[timeout_flag])
+            timer = threading.Timer(30.0, timeout_handler, args=[timeout_flag]) #time out = 30s
 
             tracemalloc.start()
             start_time = time.perf_counter()
@@ -106,7 +105,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
                 timer.cancel()
                 tracemalloc.stop()
                 if timeout_flag[0]:
-                    print(f"\n  [TIMEOUT] Run {i + 1} exceeded 20s!")
+                    print(f"\n  [TIMEOUT] Run {i + 1} exceeded 30s!")
                     break
                 else:
                     raise

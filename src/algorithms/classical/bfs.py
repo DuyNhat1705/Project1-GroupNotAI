@@ -89,9 +89,9 @@ class BFS(BaseAlgorithm):
         best_solution = [0] * problem.dimension
         nodes_expanded = 0
 
-        start_time = time.perf_counter()
-        time_limit = 10.0  # Time limit
-        num_iters = self.params.get("num_iters", 1000)
+        # start_time = time.perf_counter()
+        # time_limit = 10.0  # Time limit
+        num_iters = self.params.get("num_iters", 100)
 
         while len(queue) > 0:
             if nodes_expanded > num_iters:

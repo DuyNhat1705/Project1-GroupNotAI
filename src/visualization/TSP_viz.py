@@ -22,7 +22,8 @@ class TSPVisualizer(BaseVisualizer):
 
         self.coords = problem.coords
         self.dist_mat = problem.dist_mat
-        self.city_names = getattr(problem, 'city_names', [])
+        self.city_names = getattr(problem, 'city', [])
+        print(self.city_names)
         self.num_cities = problem.dimension
 
         # Safe Data Parsing
@@ -59,7 +60,7 @@ class TSPVisualizer(BaseVisualizer):
         pad = 20
         ax1.set_xlim(self.coords[:, 0].min() - pad, self.coords[:, 0].max() + pad)
         ax1.set_ylim(self.coords[:, 1].min() - pad, self.coords[:, 1].max() + pad)
-        ax1.set_title("Tour Map (Spanning Path & Edge Costs)")
+        ax1.set_title("Tour Map")
         ax1.set_xticks([])
         ax1.set_yticks([])
         ax1.axis('off')
@@ -135,7 +136,7 @@ class TSPVisualizer(BaseVisualizer):
 
             # Update text and convergence plot
             current_cost = self.best_costs[frame]
-            title_text.set_text(f"Iter: {frame} | Total Cost: {current_cost:.2f}")
+            title_text.set_text(f"Current Cost: {current_cost:.2f}")
 
             curve.set_data(range(frame + 1), self.best_costs[:frame + 1])
             dot.set_data([frame], [current_cost])

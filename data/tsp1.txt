@@ -11,6 +11,11 @@ Paris
 Amsterdam
 Frankfurt
 Madrid
+Bologna
+Rome
+Napoli
+Liverpool
+Rio
 
 # --- Distance Matrix (10x10) ---
 0    679  959  1021 1735 4784 5021 4870 5110 5250 4781 5210 5710 6500 8050
@@ -29,5 +34,4 @@ Madrid
 6500 6910 7250 7590 8050 5990 6080 5830 5880 6680 1795 1298 758  0    1610
 8050 8430 8770 9110 9570 6750 6840 6590 6640 7440 3300 2850 2350 1610 0
 
-# --- Best Distance ---
-23535
+# Best Distance: 23535
