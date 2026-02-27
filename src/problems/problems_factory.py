@@ -50,7 +50,7 @@ def get_problem(name, **kwargs):
     # Continuous problems cần 'dimension'
     if hasattr(ProblemClass, 'cont_flag') or name_key in ["sphere", "rosenbrock", "ackley", "griewank", "rastrigin", "michalewicz"]:
         dim = kwargs.get('dimension', 2) # Default dim = 2 nếu không truyền
-        return ProblemClass(dimension=dim)
+        return ProblemClass(dimension = dim)
     
     # Discrete problems (Graph/Maze) thường tự load file hoặc
     # có tham số riêng

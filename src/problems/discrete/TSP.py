@@ -4,7 +4,7 @@ import os
 from src.problems.base_problem import BaseProblem
 
 class TravelSalesmanProblem(BaseProblem):
-    def __init__(self, context = "tsp1",name="TSP"):
+    def __init__(self, context = "tsp1", name="TSP"):
         self.city_names = []
         self.coords = None  # coords for visualization
         self.dist_mat = None
