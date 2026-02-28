@@ -13,8 +13,11 @@ class SimulatedAnnealing(BaseAlgorithm):
         step: step size from current position
         num_iters: number of num_iters
         """
-        default_params = {"temperature": 50, "decay": 0.98, "step": 1.5, "num_iters": 300}
+        default_params = {"temperature": 100, "decay": 0.995, "step": 1.0, "num_iters": 500}
         if params:
+            if "temperature" in params: params["temperature"] = float(params["temperature"])
+            if "decay" in params: params["decay"] = float(params["decay"])
+            if "step" in params: params["step"] = float(params["step"])
             default_params.update(params)
         # Pass the merged dict to BaseAlgorithm
         super().__init__("Simulated Annealing", default_params)

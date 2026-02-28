@@ -11,8 +11,9 @@ class HillClimbing(BaseAlgorithm):
         num_iters: number of num_iters
         """
         # parameter initialization
-        default_params = {"step": 0.5, "num_iters": 300}
+        default_params = {"step": 1.0, "num_iters": 500}
         if params:
+            if "step" in params: params["step"] = float(params["step"])
             default_params.update(params)
         super().__init__("Hill Climbing", default_params)
 
