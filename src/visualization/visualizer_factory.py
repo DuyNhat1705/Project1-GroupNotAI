@@ -1,3 +1,5 @@
+from unittest import case
+
 from src.visualization.TSP_viz import TSPVisualizer
 from src.visualization.TSP_GA_viz import TSPGAVisualizer
 from src.visualization.graph_visualizer import GraphVisualizer
@@ -5,6 +7,7 @@ from src.visualization.maze_visualizer import MazeVisualizer
 from src.visualization.continuous_visualizer import ContinuousVisualizer
 from src.visualization.knapsack_viz import KnapsackVisualizer
 from src.visualization.graph_color_viz import GraphColoringVisualizer
+from src.visualization.maze_ga_visualizer import GAMazeVisualizer
 
 def get_visualizer(params):
     problem = params.get("problem")
@@ -51,13 +54,28 @@ def get_visualizer(params):
                 return GraphVisualizer(problem, history, path, title)
                 
             case "ShortestPathOnMaze":
-                print(f"  -> Done. Cost: {result.get('cost', 'N/A')}")
                 logger = result.get("logger")
-                history = logger.history.get("visited_edges", [])
-                path = result.get("path", [])
+                algo_name = params.get("algorithm", "").lower()
                 num = params.get("context", "maze1")[4:]
                 title = params.get("algorithm") + " on Maze " + num
-                return MazeVisualizer(problem, history, path, title)
+
+                # Phân nhánh cho Genetic Algorithm
+                if "genetic" in algo_name or "ga" in algo_name:
+                    print(f"  -> Done. Best Fitness: {result.get('best_fitness', 'N/A')}")
+                    # Đối với GA, history là mảng các best_solution qua từng thế hệ
+                    history = logger.history.get("best_solution", [])
+                    # Lấy kết quả đường đi tốt nhất cuối cùng
+                    path = result.get("best_solution", []) 
+                    
+                    return GAMazeVisualizer(problem, history, path, title)
+                
+                # Phân nhánh cho các thuật toán truyền thống (BFS, DFS, A*,...)
+                else:
+                    print(f"  -> Done. Cost: {result.get('cost', 'N/A')}")
+                    history = logger.history.get("visited_edges", [])
+                    path = result.get("path", [])
+                    
+                    return MazeVisualizer(problem, history, path, title)
             
             case "Knapsack Problem":
                 print(f"  -> Done. Best Fitness: {result.get('best_fitness', None)}")

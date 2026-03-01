@@ -21,9 +21,147 @@ class GeneticAlgorithm(BaseAlgorithm):
 
         if "tsp" in problem_name:
             return self.tsp_solve(problem, seed)
+        
+        if "maze" in problem_name:
+            return self.maze_solve(problem, seed)
             
         return self.continous_solve(problem, seed)
     
+    def maze_metaheuristic(self, path, goal):
+        # Trọng số cố định (bạn có thể tinh chỉnh các giá trị này)
+        alpha = 1.0  # Trọng số cho chiều dài quãng đường đã đi
+        beta = 5.0   # Trọng số cho khoảng cách đến đích (thường đặt cao hơn để định hướng tốt hơn)
+        
+        current_node = path[-1]
+        
+        # g(n): Quãng đường đã di chuyển (số bước)
+        distance_traveled = len(path) - 1
+        
+        # h(n): Khoảng cách Euclid từ vị trí hiện tại tới đích
+        distance_to_goal = np.linalg.norm(np.array(current_node) - np.array(goal))
+        
+        # Tính toán fitness tổng hợp
+        fitness = (alpha * distance_traveled) + (beta * distance_to_goal)
+        
+        return fitness
+
+    def maze_move(self, start, goal, maze):
+        path = [start]
+        curr = start
+        visited = set([start])
+        moves = np.array([[0, 1], [1, 0], [0, -1], [-1, 0]]) 
+        
+        while True:
+            if curr == goal:
+                break
+                
+            valid_moves = []
+            for m in moves:
+                next_node = (curr[0] + m[0], curr[1] + m[1])
+                if (0 <= next_node[0] < maze.shape[0] and 
+                    0 <= next_node[1] < maze.shape[1] and 
+                    maze[next_node] == 0 and 
+                    next_node not in visited):
+                    valid_moves.append(next_node)
+            
+            if not valid_moves:
+                break 
+                
+            next_step = valid_moves[np.random.randint(len(valid_moves))]
+            path.append(next_step)
+            visited.add(next_step)
+            curr = next_step
+            
+        fitness = self.maze_metaheuristic(path, goal) 
+        return path, fitness
+
+    def maze_selection(self, population, fitness, individuals_to_keep):
+        sorted_indices = np.argsort(fitness)[:individuals_to_keep]
+        return [population[i] for i in sorted_indices]
+
+    def maze_crossover(self, parents, n_offspring):
+        offspring = []
+        for _ in range(n_offspring):
+            p1 = parents[np.random.randint(len(parents))]
+            p2 = parents[np.random.randint(len(parents))]
+            common_nodes = list(set(p1[1:]) & set(p2[1:]))
+            
+            if common_nodes:
+                node = common_nodes[np.random.randint(len(common_nodes))]
+                idx1 = p1.index(node)
+                idx2 = p2.index(node)
+                child = p1[:idx1] + p2[idx2:]
+                offspring.append(child)
+            else:
+                offspring.append(deepcopy(p1 if np.random.rand() > 0.5 else p2))
+        return offspring
+
+    def maze_mutation(self, path, goal, maze, prob):
+        if np.random.rand() > prob or len(path) <= 1:
+            return path
+            
+        cut_idx = np.random.randint(1, len(path))
+        new_start = path[cut_idx - 1]
+        
+        new_partial_path, _ = self.maze_move(new_start, goal, maze)
+        return path[:cut_idx - 1] + new_partial_path
+
+    def maze_solve(self, problem, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+
+        start = tuple(problem.start)
+        goal = tuple(problem.goal)
+        maze = problem.maze
+        pop_size = self.params["pop_size"]
+
+        n_gens = self.params.get("num_iters", 100) 
+        prob_mut = self.params.get("CR", 0.1)
+        
+        logger = Logger(self.name, run_id=seed)
+        logger.history["best_fitness"] = []
+        logger.history["best_solution"] = [] 
+
+        population = []
+        for _ in range(pop_size):
+            path, _ = self.maze_move(start, goal, maze)
+            population.append(path)
+
+        best_solution = None
+        best_fitness = float('inf')
+
+        for gen in range(n_gens):
+            fitness_values = np.array([self.maze_metaheuristic(p, goal) for p in population])
+            
+            min_idx = np.argmin(fitness_values)
+            if fitness_values[min_idx] < best_fitness:
+                best_fitness = fitness_values[min_idx]
+                best_solution = deepcopy(population[min_idx])
+
+            logger.log("best_fitness", best_fitness)
+            if best_solution is not None:
+                logger.log("best_solution", deepcopy(best_solution))
+
+            n_survivors = int(pop_size * 0.5)
+            survivors = self.maze_selection(population, fitness_values, n_survivors)
+
+            n_needed = pop_size
+            offspring = self.maze_crossover(survivors, n_needed)
+            
+            offspring = [self.maze_mutation(ind, goal, maze, prob_mut) for ind in offspring]
+
+            population = list(offspring)
+
+        logger.finish(best_solution, best_fitness)
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {
+                "best_solution": best_solution, 
+                "best_fitness": best_fitness, 
+                "logger": logger
+            }
+        }
+
     def tsp_create_population(self, problem, pop_size):
         dist_mat = problem.dist_mat
         n_cities = len(dist_mat[0])

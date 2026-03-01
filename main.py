@@ -46,7 +46,7 @@ def check_compatibility(algorithm_name, problem_type):
             "Simulated Annealing", "Hill Climbing", "Particle Swarm Optimization", 
             "Firefly Algorithm", "Ant Colony Optimization", "Genetic Algorithm"
         ],
-        "ShortestPathOnMaze": ["A Star", "Breadth-First Search", "Depth-First Search"],
+        "ShortestPathOnMaze": ["A Star", "Breadth-First Search", "Depth-First Search", "Genetic Algorithm"],
         "Knapsack": [
             "Artificial Bee Colony", "Breadth-First Search", "Cuckoo Search", "TLBO"
         ],
