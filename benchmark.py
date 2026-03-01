@@ -73,7 +73,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
             algo = get_algorithm(algo_name, **algo_params)
 
             timeout_flag = [False]
-            timer = threading.Timer(30.0, timeout_handler, args=[timeout_flag]) #time out = 30s
+            timer = threading.Timer(90.0, timeout_handler, args=[timeout_flag]) #time out = 90s
 
             tracemalloc.start()
             start_time = time.perf_counter()
@@ -105,7 +105,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
                 timer.cancel()
                 tracemalloc.stop()
                 if timeout_flag[0]:
-                    print(f"\n  [TIMEOUT] Run {i + 1} exceeded 30s!")
+                    print(f"\n  [TIMEOUT] Run {i + 1} exceeded 90s!")
                     break
                 else:
                     raise
@@ -175,7 +175,7 @@ def generate_reports(stats, prob_name, optimum=None):
     # --- CONVERGENCE (Line Plot) ---
     try:
         plt.figure(figsize=(8, 6))
-        line_styles = ['-', '--', '-.', ':'] # roulette many styles of line so that one will not cover others
+        line_styles = ['-', '--', '-.'] # roulette many styles of line so that one will not cover others
 
         for idx, algo in enumerate(valid_labels):
             curves = [c for c in stats[algo]['convergence'] if c]
@@ -202,7 +202,7 @@ def generate_reports(stats, prob_name, optimum=None):
                                  color=line.get_color(), alpha=0.15)
 
         if optimum is not None:
-            plt.axhline(y=optimum, color='black', linestyle='--', linewidth=1.5, label=f"True Optimum ({optimum})")
+            plt.axhline(y=optimum, color='black', linestyle=':', linewidth=1.5, label=f"True Optimum ({optimum})")
 
         plt.yscale("symlog", linthresh=1e-3)
 
