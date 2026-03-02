@@ -226,12 +226,8 @@ class ArtificialBee(BaseAlgorithm):
 
                 idx1, idx2 = np.random.choice(range(dim), 2, replace=False)
                 grandchild[idx1], grandchild[idx2] = grandchild[idx2], grandchild[idx1]
+
                 grandchildren.append(grandchild)
-
-                # flip bit
-                flip_idx = np.random.randint(dim)
-                grandchild[flip_idx] = 1 - grandchild[flip_idx]
-
 
             # Select the best food source among children and grandchildren
             pool = children + grandchildren
