@@ -1,4 +1,4 @@
-# Knapsack Capacity
+# Knapsack Capacity (besst = 483)
 100
 
 # Items: Weight Value

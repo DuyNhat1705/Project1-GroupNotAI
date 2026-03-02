@@ -7,7 +7,7 @@ from src.problems.base_problem import BaseProblem
 class ArtificialBee(BaseAlgorithm):
 
     def __init__(self, params=None):
-        default_params = {"pop_size": 50, "num_iters": 100, "limit": 20}
+        default_params = {"pop_size": 50, "num_iters": 100, "limit": 10}
 
         # If passed anything, update the defaults with their values
         if params:
@@ -175,8 +175,8 @@ class ArtificialBee(BaseAlgorithm):
         limit = self.params["limit"]
         dim = problem.dimension
 
-        # Sparse binary initialization for Knapsack
-        food_source_arr = (np.random.rand(employed, dim) < 0.05).astype(int)
+        # Binary initialization for Knapsack
+        food_source_arr = np.random.randint(2, size=(employed, dim))
         fitness_arr = np.array([problem.evaluate(i) for i in food_source_arr])
 
         # Maximize: score = fitness
@@ -194,22 +194,59 @@ class ArtificialBee(BaseAlgorithm):
         logger.history["avg_fitness"] = []
 
         # Genetic-based generator
-        def gen_candidate_gb(cur, par1, par2, gbest):
+        def gen_candidate_gb(cur, par1, par2, gbest, thres=3):
             zero_sol = np.zeros(dim, dtype=int) # use dim from outer
-            pool = [par1, par2, gbest, zero_sol]
-            mate = pool[np.random.randint(len(pool))]
 
-            # Crossover
-            pt1, pt2 = sorted(np.random.choice(range(dim), 2, replace=False))
-            child = cur.copy()
-            child[pt1:pt2] = mate[pt1:pt2]
+            # define of 5 parents
+            parent_gene = [cur, par1, par2, gbest, zero_sol]
 
-            # Mutation
-            grandchild = child.copy()
-            idx1, idx2 = np.random.choice(range(dim), 2, replace=False)
-            grandchild[idx1], grandchild[idx2] = grandchild[idx2], grandchild[idx1]
+            # Random one-to-one and onto matching
+            mates = parent_gene.copy()
+            np.random.shuffle(mates)
 
-            return grandchild
+            children = []
+            for p1, p2 in zip(parent_gene, mates):
+                pt1, pt2 = sorted(np.random.choice(range(dim), 2, replace=False))
+                child = p1.copy()
+                child[pt1:pt2] = p2[pt1:pt2]
+
+                # check for an all-zero child
+                if np.sum(child) == 0:
+                    # Change threshold (thres) number of positions to 1
+                    ones_idx = np.random.choice(range(dim), min(thres, dim), replace=False)
+                    child[ones_idx] = 1
+
+                children.append(child)
+
+            grandchildren = []
+
+            # Apply swap operator to children to generate grandchildren
+            for child in children:
+                grandchild = child.copy()
+
+                idx1, idx2 = np.random.choice(range(dim), 2, replace=False)
+                grandchild[idx1], grandchild[idx2] = grandchild[idx2], grandchild[idx1]
+                grandchildren.append(grandchild)
+
+                # flip bit
+                flip_idx = np.random.randint(dim)
+                grandchild[flip_idx] = 1 - grandchild[flip_idx]
+
+
+            # Select the best food source among children and grandchildren
+            pool = children + grandchildren
+
+            ret_solution = None
+            ret_fitness = -np.inf
+
+            # Evaluate the local sub-population
+            for cand in pool:
+                fit = problem.evaluate(cand)
+                if fit > ret_fitness:
+                    ret_fitness = fit
+                    ret_solution = cand
+
+            return ret_solution, ret_fitness
 
         for ite in range(self.params["num_iters"]):
 
@@ -221,9 +258,7 @@ class ArtificialBee(BaseAlgorithm):
                 k2 = j
                 while k2 == j or k2 == k1: k2 = np.random.randint(employed) # ensure k1 != j
 
-                new_solution = gen_candidate_gb(food_source_arr[j], food_source_arr[k1], food_source_arr[k2],
-                                                best_solution)
-                new_fitness = problem.evaluate(new_solution)
+                new_solution, new_fitness = gen_candidate_gb(food_source_arr[j], food_source_arr[k1], food_source_arr[k2], best_solution)
 
                 if new_fitness > fitness_arr[j]:
                     food_source_arr[j] = new_solution
@@ -246,9 +281,7 @@ class ArtificialBee(BaseAlgorithm):
                 k2 = j
                 while k2 == j or k2 == k1: k2 = np.random.randint(employed)
 
-                new_solution = gen_candidate_gb(food_source_arr[j], food_source_arr[k1], food_source_arr[k2],
-                                                best_solution)
-                new_fitness = problem.evaluate(new_solution)
+                new_solution, new_fitness = gen_candidate_gb(food_source_arr[j], food_source_arr[k1], food_source_arr[k2], best_solution)
 
                 if new_fitness > fitness_arr[j]:
                     food_source_arr[j] = new_solution
@@ -261,7 +294,7 @@ class ArtificialBee(BaseAlgorithm):
             # --- Scout Bees ---
             max_trials_idx = np.argmax(trial_cnt_arr) # pick max
             if trial_cnt_arr[max_trials_idx] > limit:
-                food_source_arr[max_trials_idx] = (np.random.rand(dim) < 0.05).astype(int)
+                food_source_arr[max_trials_idx] = np.random.randint(2, size=dim)
                 fitness_arr[max_trials_idx] = problem.evaluate(food_source_arr[max_trials_idx])
                 score_arr[max_trials_idx] = fitness_arr[max_trials_idx]
                 trial_cnt_arr[max_trials_idx] = 0
