@@ -26,12 +26,12 @@ python main.py --algo abc --problem michalewicz
 
 Chạy file benchmark:
 
-python benchmark.py --problem sphere --runs 10 --dim 30 --params pop_size=30 num_iters=500 step=0.5 temperature= 100 decay=0.995
-python benchmark.py --problem ackley --runs 10 --dim 10 --params pop_size=30 num_iters=500
-python benchmark.py --problem michalewicz --runs 10 --dim 10 --params pop_size=30 num_iters=500
-python benchmark.py --problem rastrigin --runs 10 --dim 20 --params pop_size=30 num_iters=500
-python benchmark.py --problem rosenbrock --runs 10 --dim 30 --params pop_size=30 num_iters=500
-python benchmark.py --problem griewank --runs 10 --dim 20 --params pop_size=30 num_iters=500
+python benchmark.py --problem sphere --runs 10 --dim 30 --params pop_size=30 num_iters=500 step=1.0 temperature=100 decay=0.995 # complete
+python benchmark.py --problem ackley --runs 10 --dim 10 --params pop_size=30 num_iters=500 step=1.0 temperature=100 decay=0.995 # complete
+python benchmark.py --problem michalewicz --runs 10 --dim 10 --params pop_size=30 num_iters=500 step=1.0 temperature=100 decay=0.995
+python benchmark.py --problem rastrigin --runs 10 --dim 20 --params pop_size=30 num_iters=500 step=1.0 temperature=100 decay=0.995
+python benchmark.py --problem rosenbrock --runs 10 --dim 30 --params pop_size=30 num_iters=500 step=1.0 temperature=100 decay=0.995 #complete
+python benchmark.py --problem griewank --runs 10 --dim 20 --params pop_size=30 num_iters=500 step=1.0 temperature=100 decay=0.995
 
 python benchmark.py --problem tsp2 --runs 10 --params pop_size=30 num_iters=500
 python benchmark.py --problem knapsack2 --runs 10 --params pop_size=30 num_iters=500

@@ -47,6 +47,7 @@ class BFS(BaseAlgorithm):
             idx, path = current # idx of node
             nodes_expanded += 1
 
+            logger.history["best_fitness"].append(best_cost)
             # If leaf of the decision tree reached (all nodes colored)
             if idx == problem.dimension:
                 current_solution = np.array(path)
@@ -101,6 +102,7 @@ class BFS(BaseAlgorithm):
             current = queue.pop(0)  # FIFO, take frontier
             idx, cur_wei, cur_val, path = current
             nodes_expanded += 1
+            logger.history["best_fitness"].append(best_value)
 
             # If leaf of the decision tree reached
             if idx == problem.dimension:

@@ -33,6 +33,7 @@ class DFS(BaseAlgorithm):
         # start_time = time.perf_counter()
         # time_limit = 10.0
         num_iters = self.params.get("num_iters", 100)
+        logger.history["best_fitness"].append(best_cost)
 
         while stack:
             if nodes_expanded > num_iters:
@@ -99,6 +100,7 @@ class DFS(BaseAlgorithm):
 
             idx, cur_w, cur_v, path = stack.pop()
             nodes_expanded += 1
+            logger.history["best_fitness"].append(best_value)
 
             if idx == problem.dimension:
                 if cur_v > best_value:
