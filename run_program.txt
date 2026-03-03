@@ -24,14 +24,18 @@ python main.py --algo sa --problem sphere
 python main.py --algo hc --problem sphere
 python main.py --algo abc --problem griewank
 python main.py --algo abc --problem michalewicz
-python main.py --algo abc --problem ackley
-python main.py --algo abc --problem rastrigin
-python main.py --algo abc --problem rosenbrock
+
 
 Chạy file benchmark:
-python benchmark.py --problem shortestpathonmaze
-python benchmark.py --problem sphere
-python benchmark.py --problem ackley --runs 10 --dim 10 --params pop_size=20 num_iters=10
-python benchmark.py --problem michalewicz --runs 10 --dim 10 --params pop_size=30 num_iters=50
 
-python benchmark.py --problem tsp1 --runs 10 --params pop_size=30 num_iters=100
+python benchmark.py --problem sphere --runs 10 --dim 30 --params pop_size=30 num_iters=500 step=0.5 temperature= 100 decay=0.995
+python benchmark.py --problem ackley --runs 10 --dim 10 --params pop_size=30 num_iters=500
+python benchmark.py --problem michalewicz --runs 10 --dim 10 --params pop_size=30 num_iters=500
+python benchmark.py --problem rastrigin --runs 10 --dim 20 --params pop_size=30 num_iters=500
+python benchmark.py --problem rosenbrock --runs 10 --dim 30 --params pop_size=30 num_iters=500
+python benchmark.py --problem griewank --runs 10 --dim 20 --params pop_size=30 num_iters=500
+
+python benchmark.py --problem tsp2 --runs 10 --params pop_size=30 num_iters=500
+python benchmark.py --problem knapsack2 --runs 10 --params pop_size=30 num_iters=500
+python benchmark.py --problem coloring2 --runs 10 --params pop_size=30 num_iters=500
+python benchmark.py --problem maze2 --runs 10 --params pop_size=30 num_iters=100
