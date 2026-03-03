@@ -17,7 +17,7 @@ from src.HandleCLI import parse_param_string
 # ==========================================
 COMPATIBILITY = {
     "continuous": ["abc", "sa", "hc", "pso", "cs", "fa", "aco", "ga", "de", "tlbo"],
-    "tsp": ["sa", "hc", "pso", "fa", "aco", "ga"],
+    "tsp": ["sa", "hc", "pso", "fa", "aco", "ga", "astar"],
     "maze": ["astar", "bfs", "dfs"],
     "knapsack": ["abc", "bfs", "cs", "tlbo"],
     "graphcoloring": ["bfs", "dfs"]

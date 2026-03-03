@@ -109,17 +109,28 @@ class TSPVisualizer(BaseVisualizer):
             current_path = self.solutions[frame].astype(int)
 
             # Append start node to end to close the loop
-            draw_indices = np.append(current_path, current_path[0])
+            path_len = len(current_path)
+            # print(path_len)
+            is_full = path_len == self.num_cities
+
+            # ---- draw path ----
+            if is_full:
+                draw_indices = np.append(current_path, current_path[0])
+            else:
+                draw_indices = current_path
 
             # Update Path Line
             path_x = self.coords[draw_indices, 0]
             path_y = self.coords[draw_indices, 1]
             line.set_data(path_x, path_y)
 
+            if path_len < 2:
+                return [line, title_text, curve, dot] + edge_labels
+
             # Update Edge Costs
-            for i in range(self.num_cities):
+            for i in range(path_len - (0 if is_full else 1)):
                 u = current_path[i]
-                v = current_path[(i + 1) % self.num_cities] # ensure valid node
+                v = current_path[(i + 1) % path_len] # ensure valid node
 
                 # midpoint of the edge
                 x1, y1 = self.coords[u]
@@ -133,7 +144,10 @@ class TSPVisualizer(BaseVisualizer):
                 # Update position and value
                 edge_labels[i].set_position((mid_x, mid_y))
                 edge_labels[i].set_text(f"{cost:.0f}")
-
+            
+            # Hide unused labels
+            for j in range(path_len, len(edge_labels)):
+                edge_labels[j].set_text("")
             # Update text and convergence plot
             current_cost = self.best_costs[frame]
             title_text.set_text(f"Current Cost: {current_cost:.2f}")

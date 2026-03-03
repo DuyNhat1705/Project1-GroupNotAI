@@ -13,6 +13,8 @@ python main.py --algo astar --problem maze2
 python main.py --algo sa --problem tsp1
 python main.py --algo hc --problem tsp1
 python main.py --algo ga --problem tsp1
+python main.py --algo astar --problem tsp1
+
 
 Continuous:
 python main.py --algo ga --problem sphere --params pop_size=500
