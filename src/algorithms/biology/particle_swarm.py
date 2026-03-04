@@ -7,7 +7,7 @@ import random
 class PSO(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
-            'pop_size': 30, 'num_iters': 100,
+            'pop_size': 50, 'num_iters': 100,
             'w_max': 0.9, 'w_min': 0.4,
             'c1': 2.05, 'c2': 2.05
         }

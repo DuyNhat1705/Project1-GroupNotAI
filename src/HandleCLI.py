@@ -26,6 +26,7 @@ def parse_param_string(param_list):
             
         params[key] = value
     return params
+
 def handleCLI():
     parser = argparse.ArgumentParser(description="AI Search Algorithm Runner")
 

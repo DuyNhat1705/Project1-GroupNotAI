@@ -8,7 +8,7 @@ import numpy as np
 class ACO(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
-            'pop_size': 10, 'num_iters': 100, 'alpha': 1.0, 'beta': 2.0,
+            'pop_size': 50, 'num_iters': 100, 'alpha': 1.0, 'beta': 2.0,
             'evaporation': 0.5, 'Q': 100, 'archive_size': 50, 'xi': 0.85
         }
         if params:
