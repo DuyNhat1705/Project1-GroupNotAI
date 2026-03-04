@@ -36,7 +36,7 @@ class A_Star(BaseAlgorithm):
         if maze[goal[0], goal[1]] == 1 or maze[start[0], start[1]] == 1:
             logger.finish(best_solution=[], best_fitness=float('inf'))
             return {"time(ms)": logger.meta["runtime"],
-                    "result": {"cost": float('inf'), "path": [], "logger": logger}}
+                    "result": {"best_fitness": float('inf'), "path": [], "logger": logger}}
 
         came_from = {}
         close_states = set()  # admissible heuristic function: euclidean distance
@@ -90,7 +90,7 @@ class A_Star(BaseAlgorithm):
         return {
             "time(ms)": logger.meta["runtime"],
             "result": {
-                "cost": final_cost,
+                "best_fitness": final_cost,
                 "path": self.params["path"],
                 "nodes_expanded": len(logger.history["visited_edges"]),  # <-- DISCRETE METRIC
                 "logger": logger

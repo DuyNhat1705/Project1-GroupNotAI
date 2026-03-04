@@ -7,7 +7,7 @@ import argparse
 import json
 import threading
 import _thread
-
+import itertools
 from src.problems.problems_factory import get_problem
 from src.algorithms.algorithms_factory import get_algorithm
 from src.HandleCLI import parse_param_string
@@ -73,7 +73,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
             algo = get_algorithm(algo_name, **algo_params)
 
             timeout_flag = [False]
-            timer = threading.Timer(90.0, timeout_handler, args=[timeout_flag]) #time out = 90s
+            timer = threading.Timer(300.0, timeout_handler, args=[timeout_flag]) #time out = 90s
 
             tracemalloc.start()
             start_time = time.perf_counter()
@@ -187,8 +187,11 @@ def generate_reports(stats, prob_name, optimum=None):
                 max_len = max(len(c) for c in curves)
                 padded = [c + [c[-1]] * (max_len - len(c)) for c in curves]
 
-                mean_curve = np.mean(padded, axis=0)
-                std_curve = np.std(padded, axis=0)
+                padded_arr = np.array(padded, dtype=float)
+                padded_arr[np.isinf(padded_arr)] = np.nan
+
+                mean_curve = np.nanmean(padded_arr, axis=0)
+                std_curve = np.nanstd(padded_arr, axis=0)
 
                 # X-axis starts at 1
                 x_axis = np.arange(1, len(mean_curve) + 1)
@@ -204,7 +207,10 @@ def generate_reports(stats, prob_name, optimum=None):
         if optimum is not None:
             plt.axhline(y=optimum, color='black', linestyle=':', linewidth=1.5, label=f"True Optimum ({optimum})")
 
-        plt.yscale("symlog", linthresh=1e-3)
+        if "knapsack" in prob_name or "tsp" in prob_name  or "maze" in prob_name:
+            plt.yscale("linear")
+        else:
+            plt.yscale("symlog", linthresh=1e-3)
 
         plt.title(f"Convergence - {prob_name.upper()}")
         plt.xlabel("Iterations")
@@ -258,6 +264,7 @@ def generate_reports(stats, prob_name, optimum=None):
         ax1.set_ylabel('Average Time (ms)', color='tab:blue', fontweight='bold')
         ax1.tick_params(axis='y', labelcolor='tab:blue')
 
+        ax1.set_ylim(bottom=0)
         ax2 = ax1.twinx()
         bars2 = ax2.bar(x + width / 2, avg_memory, width, yerr=std_memory, capsize=5, label='Memory (KB)',
                         color='lightcoral')
