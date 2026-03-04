@@ -35,6 +35,8 @@ class KnapsackVisualizer(BaseVisualizer):
             print("ERROR: Nothing to animate!")
             return
 
+        print(self.history)
+
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 10), gridspec_kw={'width_ratios': [1, 1.5]})
         fig.suptitle(self.title, fontsize=16, fontweight='bold')
 
@@ -105,7 +107,7 @@ class KnapsackVisualizer(BaseVisualizer):
             ax2.set_xlim(0, len(self.history))
             ax2.set_ylim(0, max(max(self.best_values) * 1.1, 10))
             ax2.set_title("Optimization Progress", fontsize=14)
-            ax2.set_xlabel("Iteration: ", fontsize=12)
+            ax2.set_xlabel("Iteration", fontsize=12)
             ax2.set_ylabel("Best Value Found", fontsize=12)
             ax2.grid(True, linestyle='--', alpha=0.7)
 

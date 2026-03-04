@@ -13,7 +13,7 @@ class SimulatedAnnealing(BaseAlgorithm):
         step: step size from current position
         num_iters: number of num_iters
         """
-        default_params = {"temperature": 100, "decay": 0.995, "step": 1.0, "num_iters": 500}
+        default_params = {"temperature": 100, "decay": 0.995, "step": 1.0, "num_iters": 100}
         if params:
             if "temperature" in params: params["temperature"] = float(params["temperature"])
             if "decay" in params: params["decay"] = float(params["decay"])

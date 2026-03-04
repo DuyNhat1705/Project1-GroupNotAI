@@ -5,7 +5,7 @@ import numpy as np
 class CS(BaseAlgorithm):
     def __init__(self, params=None):
         default_params = {
-            'pop_size': 25, 'pa': 0.25, 'alpha': 0.01, 'beta': 1.5,
+            'pop_size': 50, 'pa': 0.25, 'alpha': 0.01, 'beta': 1.5,
             'num_iters': 100, 'seed': None
         }
         if params:
