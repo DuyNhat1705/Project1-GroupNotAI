@@ -28,15 +28,13 @@ class BFS(BaseAlgorithm):
         # init logger
         logger = Logger(self.name, run_id=seed)
         logger.history["current_best"] = []
+        logger.history["best_fitness"] = []
 
-        # fallback for timeout
         best_solution = [0] * problem.dimension
         best_cost = problem.evaluate(np.array(best_solution))
         nodes_expanded = 0
 
         num_iters = self.params.get("num_iters", 100)
-        # start_time = time.perf_counter()
-        # time_limit = 10.0  # time limit
 
         while len(queue) > 0:
             if nodes_expanded > num_iters:
@@ -48,6 +46,7 @@ class BFS(BaseAlgorithm):
             nodes_expanded += 1
 
             logger.history["best_fitness"].append(best_cost)
+            logger.history["current_best"].append(np.array(best_solution))
             # If leaf of the decision tree reached (all nodes colored)
             if idx == problem.dimension:
                 current_solution = np.array(path)
@@ -56,8 +55,9 @@ class BFS(BaseAlgorithm):
                 if cost < best_cost: # if better cost found, update best_solution
                     best_cost = cost
                     best_solution = list(path)
-                    logger.history["current_best"].append(np.array(best_solution))
+
                 continue
+
 
             # Only try existing colors + 1 new. consider (0,1) and (1,0) same
             max_color_used = max(path) if path else -1
@@ -67,18 +67,20 @@ class BFS(BaseAlgorithm):
                 if c < problem.dimension:
                     queue.append((idx + 1, path + (c,))) #add new color to path
 
+            logger.log("best_fitness", best_cost)
+
         final_solution = np.array(best_solution)
-        logger.log("cost", best_cost)
         logger.finish(best_solution=final_solution, best_fitness=best_cost)
 
         return {
             "time(ms)": logger.meta["runtime"],
-            "result": {"path": best_solution, "cost": best_cost, "best_fitness": best_cost,
+            "result": {"path": best_solution, "best_fitness": best_cost,
                        "nodes_expanded": nodes_expanded, "logger": logger}
         }
 
     def _solve_knapsack(self, problem, seed):
         logger = Logger(self.name, run_id=seed)
+        logger.history["best_fitness"] = []
         logger.history["current_best"] = []
 
         # (item idx, current weight, current value, selection tuple)
@@ -90,8 +92,6 @@ class BFS(BaseAlgorithm):
         best_solution = [0] * problem.dimension
         nodes_expanded = 0
 
-        # start_time = time.perf_counter()
-        # time_limit = 10.0  # Time limit
         num_iters = self.params.get("num_iters", 100)
 
         while len(queue) > 0:
@@ -104,13 +104,15 @@ class BFS(BaseAlgorithm):
             nodes_expanded += 1
             logger.history["best_fitness"].append(best_value)
 
+            # Log the 1D numpy arr for later used by KnapsackViz
+            logger.history["current_best"].append(np.array(best_solution))
             # If leaf of the decision tree reached
             if idx == problem.dimension:
                 if cur_val > best_value:
                     best_value = cur_val
                     best_solution = list(path)
-                    # Log the 1D numpy arr for later used by KnapsackViz
-                    logger.history["current_best"].append(np.array(best_solution))
+
+
                 continue
 
             # Branch 1: Exclude the current item (0)
@@ -126,12 +128,12 @@ class BFS(BaseAlgorithm):
         final_solution = np.array(best_solution)
         cost = problem.evaluate(final_solution)
 
-        logger.log("cost", cost)
+        logger.log("best_fitness", cost)
         logger.finish(best_solution=final_solution, best_fitness=best_value)
 
         return {
             "time(ms)": logger.meta["runtime"],
-            "result": {"path": best_solution, "cost": cost, "best_fitness": best_value,
+            "result": {"path": best_solution, "best_fitness": cost, "best_fitness": best_value,
                        "nodes_expanded": nodes_expanded, "logger": logger}
         }
 
@@ -147,6 +149,7 @@ class BFS(BaseAlgorithm):
         nodes_expanded = 0
 
         logger = Logger(self.name, run_id=seed)
+        logger.history["best_fitness"] = []
         logger.history["visited_edges"] = []
         logger.history["visited_edges"].append((start, start))
         ite = 0  # iteration count
@@ -162,15 +165,17 @@ class BFS(BaseAlgorithm):
 
             current = queue.pop(0)  # pop front
             ite += 1
+            current_path = self.reconstruct_path(predecessor, current)
+            logger.history["best_fitness"].append(problem.evaluate(current_path))
 
             if current == goal:
                 path = self.reconstruct_path(predecessor, current)
                 cost = problem.evaluate(path)
                 fitness = len(path) - 1  # not take weight in account
-                logger.log("cost", cost)
+                logger.log("best_fitness", cost)
                 logger.finish(best_solution=path, best_fitness=fitness)
                 return {"time(ms)": logger.meta["runtime"],
-                        "result": {"path": path, "cost": cost, "nodes_expanded": len(logger.history["visited_edges"]),
+                        "result": {"path": path, "best_fitness": cost, "nodes_expanded": len(logger.history["visited_edges"]),
                                    "logger": logger}}
 
             neighbors = problem.get_neighbors(current)
@@ -187,7 +192,7 @@ class BFS(BaseAlgorithm):
         # No path found or timeout
         logger.finish(best_solution=[], best_fitness=float('inf'))
         return {"time(ms)": logger.meta["runtime"],
-                "result": {"path": [], "cost": float('inf'), "nodes_expanded": len(logger.history["visited_edges"]),
+                "result": {"path": [], "best_fitness": float('inf'), "nodes_expanded": len(logger.history["visited_edges"]),
                            "logger": logger}}
 
     def reconstruct_path(self, previous, current):

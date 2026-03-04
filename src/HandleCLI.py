@@ -93,7 +93,7 @@ def check_compatibility(algorithm_name, problem_type):
         ],
         "ShortestPathOnMaze": ["A Star", "Breadth-First Search", "Depth-First Search", "Genetic Algorithm"],
         "Knapsack": [
-            "Artificial Bee Colony", "Breadth-First Search", "Cuckoo Search", "TLBO"
+            "Artificial Bee Colony", "Breadth-First Search", "Cuckoo Search", "TLBO", "Breadth-First Search", "Depth-First Search"
         ],
         "GraphColoring": ["Breadth-First Search", "Depth-First Search"],
         "ShortestPathOnGraph": ["Breadth-First Search", "Depth-First Search"]

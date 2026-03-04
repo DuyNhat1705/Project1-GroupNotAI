@@ -24,16 +24,14 @@ class DFS(BaseAlgorithm):
         stack = [(0, ())]
 
         logger = Logger(self.name, run_id=seed)
+        logger.history["best_fitness"] = []
         logger.history["current_best"] = []
 
         best_solution = [0] * problem.dimension
         best_cost = problem.evaluate(np.array(best_solution))
         nodes_expanded = 0
 
-        # start_time = time.perf_counter()
-        # time_limit = 10.0
         num_iters = self.params.get("num_iters", 100)
-        logger.history["best_fitness"].append(best_cost)
 
         while stack:
             if nodes_expanded > num_iters:
@@ -42,14 +40,16 @@ class DFS(BaseAlgorithm):
 
             idx, path = stack.pop()
             nodes_expanded += 1
+            solution = np.array(path)
+            logger.history["best_fitness"].append(best_cost)
+            logger.history["current_best"].append(solution)
 
             if idx == problem.dimension:
-                solution = np.array(path)
+
                 cost = problem.evaluate(solution)
                 if cost < best_cost:
                     best_cost = cost
                     best_solution = list(path)
-                    logger.history["current_best"].append(solution)
                 continue
 
             max_color_used = max(path) if path else -1
@@ -60,14 +60,13 @@ class DFS(BaseAlgorithm):
                     stack.append((idx + 1, path + (c,)))
 
         final_solution = np.array(best_solution)
-        logger.log("cost", best_cost)
+        logger.log("best_fitness", best_cost)
         logger.finish(best_solution=final_solution, best_fitness=best_cost)
 
         return {
             "time(ms)": logger.meta["runtime"],
             "result": {
                 "path": best_solution,
-                "cost": best_cost,
                 "best_fitness": best_cost,
                 "nodes_expanded": nodes_expanded,
                 "logger": logger
@@ -80,6 +79,7 @@ class DFS(BaseAlgorithm):
     def _solve_knapsack(self, problem, seed):
         logger = Logger(self.name, run_id=seed)
         logger.history["current_best"] = []
+        logger.history["best_fitness"] = []
 
         # (idx, weight, value, path)
         stack = [(0, 0.0, 0.0, ())]
@@ -87,9 +87,6 @@ class DFS(BaseAlgorithm):
         best_value = -1
         best_solution = [0] * problem.dimension
         nodes_expanded = 0
-
-        # start_time = time.perf_counter()
-        # time_limit = 10.0
 
         num_iters = self.params.get("num_iters", 100)
 
@@ -101,13 +98,15 @@ class DFS(BaseAlgorithm):
             idx, cur_w, cur_v, path = stack.pop()
             nodes_expanded += 1
             logger.history["best_fitness"].append(best_value)
+            logger.history["current_best"].append(np.array(best_solution))
 
             if idx == problem.dimension:
                 if cur_v > best_value:
                     best_value = cur_v
                     best_solution = list(path)
-                    logger.history["current_best"].append(np.array(best_solution))
+                    #logger.history["current_best"].append(np.array(best_solution))
                 continue
+
 
             # DFS: push include trước để đi sâu
             if cur_w + problem.weights[idx] <= problem.capacity:
@@ -123,14 +122,14 @@ class DFS(BaseAlgorithm):
         final_solution = np.array(best_solution)
         cost = problem.evaluate(final_solution)
 
-        logger.log("cost", cost)
+        logger.log("best_fitness", cost)
         logger.finish(best_solution=final_solution, best_fitness=best_value)
 
         return {
             "time(ms)": logger.meta["runtime"],
             "result": {
                 "path": best_solution,
-                "cost": cost,
+                "best_cost": cost,
                 "best_fitness": best_value,
                 "nodes_expanded": nodes_expanded,
                 "logger": logger
@@ -151,35 +150,33 @@ class DFS(BaseAlgorithm):
         nodes_expanded = 0
         logger = Logger(self.name, run_id=seed)
         logger.history["visited_edges"] = [(start, start)]
-
-        # start_time = time.perf_counter()
-        # time_limit = 10.0
+        logger.history["best_fitness"] = []
 
         num_iters = self.params.get("num_iters", 100)
 
         while stack:
-            if nodes_expanded > num_iters:
-                print(f"  [{self.name}] Iteration limit ({num_iters}) reached!")
-                break
 
             current = stack.pop()
+            nodes_expanded += 1
 
-            if current == goal:
+            current_path = self.reconstruct_path(predecessor, current)
+            logger.history["best_fitness"].append(problem.evaluate(current_path))
+
+            if current == goal or nodes_expanded > num_iters:
+                if nodes_expanded > num_iters:
+                    print(f"  [{self.name}] Iteration limit ({num_iters}) reached! Returning progress.")
+
                 path = self.reconstruct_path(predecessor, current)
                 cost = problem.evaluate(path)
                 fitness = len(path) - 1
 
-                logger.log("cost", cost)
+                logger.log("best_fitness", cost)
                 logger.finish(best_solution=path, best_fitness=fitness)
 
                 return {
                     "time(ms)": logger.meta["runtime"],
-                    "result": {
-                        "path": path,
-                        "cost": cost,
-                        "nodes_expanded": len(logger.history["visited_edges"]),
-                        "logger": logger
-                    }
+                    "result": {"path": path, "cost": cost, "nodes_expanded": len(logger.history["visited_edges"]),
+                               "logger": logger}
                 }
 
             for neigh in problem.get_neighbors(current):

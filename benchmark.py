@@ -187,8 +187,11 @@ def generate_reports(stats, prob_name, optimum=None):
                 max_len = max(len(c) for c in curves)
                 padded = [c + [c[-1]] * (max_len - len(c)) for c in curves]
 
-                mean_curve = np.mean(padded, axis=0)
-                std_curve = np.std(padded, axis=0)
+                padded_arr = np.array(padded, dtype=float)
+                padded_arr[np.isinf(padded_arr)] = np.nan
+
+                mean_curve = np.nanmean(padded_arr, axis=0)
+                std_curve = np.nanstd(padded_arr, axis=0)
 
                 # X-axis starts at 1
                 x_axis = np.arange(1, len(mean_curve) + 1)
@@ -204,7 +207,7 @@ def generate_reports(stats, prob_name, optimum=None):
         if optimum is not None:
             plt.axhline(y=optimum, color='black', linestyle=':', linewidth=1.5, label=f"True Optimum ({optimum})")
 
-        if "knapsack" in prob_name or "tsp" in prob_name or "coloring" in prob_name or "maze" in prob_name:
+        if "knapsack" in prob_name or "tsp" in prob_name  or "maze" in prob_name:
             plt.yscale("linear")
         else:
             plt.yscale("symlog", linthresh=1e-3)
