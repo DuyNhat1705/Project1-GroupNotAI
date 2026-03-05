@@ -142,7 +142,7 @@ class A_Star(BaseAlgorithm):
     def solveTSP(self, problem, seed=None):
 
         # Extract parameters and problem details
-        num_iters = self.params.get("num_iters", True)
+        num_iters = self.params.get("num_iters", None)
         dist = problem.dist_mat
         n = problem.dimension
 
@@ -163,14 +163,13 @@ class A_Star(BaseAlgorithm):
         logger.history["best_fitness"] = []
         logger.history["explored"] = []
 
-        while num_iters > 0 and prior_queue:
+        while prior_queue and (num_iters is None or num_iters > 0):
             f, g, city, mask = heapq.heappop(prior_queue)
             state_id = (city, mask)
             if state_id in close_states:
                 continue
             close_states.add(state_id)
             cur_path = self.reconstruct_partial(parent, state_id)
-
             # Log g (cost of cur_path) as best_fitness, cur_path as explored
             logger.log("best_fitness", g)
             logger.log("explored", ([dummy_partial_path.copy(), cur_path.copy()], g))
@@ -194,15 +193,16 @@ class A_Star(BaseAlgorithm):
                     h = self.mst_heuristic(nxt,new_mask,dist,start,n)
                     heapq.heappush(prior_queue, (new_g + h, new_g, nxt, new_mask))
             
-            num_iters = num_iters - 1 if isinstance(num_iters, int) else num_iters
+            if num_iters is not None:
+                num_iters -= 1
 
         if goal_state is not None:
             best_path = self.reconstruct_partial(parent, goal_state)
-            best_path.append(start)
         else:
             best_path = []
-
         cost = problem.evaluate(best_path) if best_path else float("inf")
+        logger.history["explored"][-1] = (logger.history["explored"][-1][0], cost)
+        best_path.append(start)
 
         logger.finish(best_solution=best_path, best_fitness=cost)
         return {"time(ms)": logger.meta["runtime"],

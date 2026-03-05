@@ -1,4 +1,3 @@
-import time
 import numpy as np
 from src.algorithms.base_algorithm import BaseAlgorithm
 from src.utils.logger import Logger
