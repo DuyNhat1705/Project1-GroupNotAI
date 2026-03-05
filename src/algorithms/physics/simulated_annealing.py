@@ -24,25 +24,118 @@ class SimulatedAnnealing(BaseAlgorithm):
         for key, val in default_params.items():
             setattr(self, key, val) #pass arguments from terminal
 
-    def get_neighbor(self, cur_pos, lower, upper, cont_flag):
 
-        if cont_flag:
-            step = self.params["step"]
+    def solve(self, problem, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
 
-            # noise: exploring by take small step from current position
-            noise = np.random.normal(0, step, size=cur_pos.shape)
-            neigh = cur_pos + noise
+        # The Master Router: Direct the problem to the correct SA behavior
+        prob_name = getattr(problem, 'name', problem.getName() if hasattr(problem, 'getName') else "").lower()
 
-            # ensure the explored neighbors lay within bounds by clipping outrange value
-            neigh = np.clip(neigh, lower, upper)
-
-            return neigh
-
+        if "coloring" in prob_name:
+            return self._solve_color(problem, seed)
+        elif "tsp" in prob_name:
+            return self._solve_tsp(problem, seed)
+        elif getattr(problem, 'cont_flag', False):
+            return self._solve_cont(problem, seed)
         else:
-            # Create a copy, do not change the current postion
-            bounds = [None, None] #initialize to prevent later error
+            return self._solve_tsp(problem, seed)  # Fallback
 
-            neigh = cur_pos.copy()
+
+    def _solve_color(self, problem, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
+
+        dim = problem.dimension
+
+        # random color initialization
+        cur = np.random.randint(0, dim, size=dim)
+        cur_fit = problem.evaluate(cur)
+
+        # record the best solution
+        best = cur.copy()
+        best_fit = cur_fit
+
+        # assign initial temperature
+        temp = self.params["temperature"]
+
+        # log best evaluation as list
+        logger = Logger(self.name, run_id=seed)
+        logger.history["current_best"] = []  # explored point
+
+        # logger.history["explored"].append(([cur.copy(), best.copy()], best_fit))
+
+        logger.history["best_fitness"] = []  # best evaluation
+
+        for ite in range(self.params["num_iters"]):
+            neigh = cur.copy() # extract used colors
+
+            # Pick a random node
+            idx = np.random.randint(dim)
+
+            # Pick a random color (Bound to max used + 1)
+            max_color = min(dim - 1, np.max(neigh) + 1)
+            available_colors = [c for c in range(max_color + 1) if c != neigh[idx]] # differ from current color of chosen node
+
+            if available_colors:
+                neigh[idx] = np.random.choice(available_colors) # random the new color
+            else:
+                neigh[idx] = 0
+
+            next_fit = problem.evaluate(neigh)
+
+            # Minimize acceptance
+            delta = next_fit - cur_fit
+            if delta < 0 or random.random() < math.exp(-delta / max(temp, 1e-10)):
+                cur = neigh
+                cur_fit = next_fit
+
+            if cur_fit < best_fit:
+                best = cur.copy()
+                best_fit = cur_fit
+
+            logger.log("best_fitness", best_fit)
+            # Log 'cur'
+            logger.history["current_best"].append(cur.copy())
+
+            temp *= self.params["decay"]
+
+        logger.finish(best_solution=best, best_fitness=best_fit)
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {"path": best.tolist(), "best_solution": best.tolist(), "best_fitness": best_fit,
+                       "logger": logger}
+        }
+
+    def _solve_tsp(self, problem, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
+
+        # TSP initialization (random path 0 to N-1)
+        cur = np.random.permutation(problem.dimension)
+
+        cur_fit = problem.evaluate(cur)
+
+        # record the best solution
+        best = cur.copy()
+        best_fit = cur_fit
+
+        # assign initial temperature
+        temp = self.params["temperature"]
+
+        # log best evalutaion as list
+        logger = Logger(self.name, run_id=seed)
+        logger.history["explored"] = []  # explored point
+
+        # logger.history["explored"].append(([cur.copy(), best.copy()], best_fit))
+
+        logger.history["best_fitness"] = []  # best evaluation
+
+        def get_neighbor_tsp(cur):
+            neigh = cur.copy()
             n = len(neigh)
 
             # Pick two random indices and swap them
@@ -51,7 +144,42 @@ class SimulatedAnnealing(BaseAlgorithm):
 
             return neigh
 
-    def solve(self, problem, seed=None):
+        for ite in range(self.params["num_iters"]):
+
+            # exploring at each num_iters
+            next_pos = get_neighbor_tsp(cur)
+            next_fit = problem.evaluate(next_pos)
+
+            # Accept if better evaluation OR by chance
+            # (probability depends on temperature)
+            delta = next_fit - cur_fit
+            if delta < 0 or random.random() < math.exp(-delta / temp):
+                cur = next_pos
+                cur_fit = next_fit
+
+            # Update Best
+            if cur_fit < best_fit:
+                best = cur.copy()
+                best_fit = cur_fit
+
+            logger.log("best_fitness", best_fit)
+            logger.history["explored"].append(([cur.copy(), best.copy()], best_fit))
+
+            temp *= self.params["decay"]  # decrease temperature by decay factor
+
+        logger.finish(best_solution=best, best_fitness=best_fit)  # log the best and terminate
+
+        # Return standard dictionary format
+        return {
+            "time(ms)": logger.meta["runtime"],
+            "result": {
+                "best_solution": best,
+                "best_fitness": best_fit,
+                "logger": logger
+            }
+        }
+
+    def _solve_cont(self, problem, seed=None):
 
         if seed is not None:
             np.random.seed(seed)
@@ -63,12 +191,6 @@ class SimulatedAnnealing(BaseAlgorithm):
             lower_bound = bounds[:, 0]
             upper_bound = bounds[:, 1]
             cur = np.random.uniform(lower_bound, upper_bound, size=problem.dimension)
-
-        else:
-            # TSP initialization (random path 0 to N-1)
-            cur = np.random.permutation(problem.dimension)
-            # Unused bounds are set to None
-            lower_bound, upper_bound = None, None
 
         cur_fit = problem.evaluate(cur)
 
@@ -87,11 +209,23 @@ class SimulatedAnnealing(BaseAlgorithm):
 
         logger.history["best_fitness"] = [] # best evaluation
 
+        def get_neighbor_cont(cur_pos, lower, upper):
+
+            step = self.params["step"]
+
+            # noise: exploring by take small step from current position
+            noise = np.random.normal(0, step, size=cur_pos.shape)
+            neigh = cur_pos + noise
+
+            # ensure the explored neighbors lay within bounds by clipping outrange value
+            neigh = np.clip(neigh, lower, upper)
+
+            return neigh
 
         for ite in range(self.params["num_iters"]):
 
             # exploring at each num_iters
-            next_pos = self.get_neighbor(cur, lower_bound, upper_bound, problem.cont_flag)
+            next_pos = get_neighbor_cont(cur, lower_bound, upper_bound)
             next_fit = problem.evaluate(next_pos)
 
             # Accept if better evaluation OR by chance

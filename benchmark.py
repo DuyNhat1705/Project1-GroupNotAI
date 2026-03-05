@@ -20,7 +20,7 @@ COMPATIBILITY = {
     "tsp": ["sa", "hc", "pso", "fa", "aco", "ga", "astar"],
     "maze": ["astar", "bfs", "dfs", "ga"],
     "knapsack": ["abc", "bfs", "cs", "tlbo"],
-    "graphcoloring": ["bfs", "dfs"]
+    "graphcoloring": ["bfs", "dfs", "sa", "hc"]
 } #match problem with available algorithms
 
 def timeout_handler(flag): #time limit = 30s (set below)

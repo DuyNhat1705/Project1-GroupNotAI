@@ -45,7 +45,7 @@ class BFS(BaseAlgorithm):
             idx, path = current # idx of node
             nodes_expanded += 1
 
-            logger.history["best_fitness"].append(best_cost)
+            #logger.history["best_fitness"].append(best_cost)
             logger.history["current_best"].append(np.array(best_solution))
             # If leaf of the decision tree reached (all nodes colored)
             if idx == problem.dimension:

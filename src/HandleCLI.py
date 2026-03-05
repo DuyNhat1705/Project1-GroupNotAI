@@ -1,6 +1,9 @@
 # src/HandleCLI.py
 import argparse
 
+from src.algorithms.classical.hill_climbing import HillClimbing
+
+
 def parse_param_string(param_list):
     """
     Chuyển list ['key=value', 'a=1'] thành dict {'key': 'value', 'a': 1}
@@ -96,7 +99,7 @@ def check_compatibility(algorithm_name, problem_type):
         "Knapsack": [
             "Artificial Bee Colony", "Breadth-First Search", "Cuckoo Search", "TLBO", "Breadth-First Search", "Depth-First Search"
         ],
-        "GraphColoring": ["Breadth-First Search", "Depth-First Search"],
+        "GraphColoring": ["Breadth-First Search", "Depth-First Search", "Simulated Annealing", "Hill Climbing"],
         "ShortestPathOnGraph": ["Breadth-First Search", "Depth-First Search"]
     }
     
