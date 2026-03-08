@@ -1,4 +1,4 @@
-# Vertices & Edges
+# Vertices & Edges (min = 3 colors)
 6 8
 # Edges
 0 1

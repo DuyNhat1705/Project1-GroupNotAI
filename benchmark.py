@@ -23,18 +23,53 @@ COMPATIBILITY = {
     "graphcoloring": ["bfs", "dfs", "sa", "hc"]
 } #match problem with available algorithms
 
+optimum = None
+
+
 def timeout_handler(flag): #time limit = 30s (set below)
     """Sets the timeout flag and forces a KeyboardInterrupt in the main thread"""
     flag[0] = True
     _thread.interrupt_main()
 
 def route_solver(prob_name): # route input testcase to problem
+    global optimum
     prob = prob_name.lower()
-    if prob in ["tsp1", "tsp2"]: return "tsp"
+
+    if prob == "tsp1":
+        optimum = 23535.0
+        return "tsp"
+    if prob == "tsp2":
+        optimum = 1272.0
+        return "tsp"
+    if prob == "tsp3":
+        optimum = 33523.0
+        return "tsp"
+    if prob == "tsp4":
+        optimum = 417.6
+        return "tsp"
+
     if prob in ["maze1", "maze2"]: return "maze"
-    if prob in ["knapsack1", "knapsack2"]: return "knapsack"
-    if prob in ["graph1"]: return "graph"
-    if prob in ["coloring1", "coloring2"]: return "graphcoloring"
+
+    if prob == "knapsack1":
+        optimum = 483.0
+        return "knapsack"
+    if prob == "knapsack2":
+        optimum = 47719.0
+        return "knapsack"
+    if prob == "knapsack3":
+        optimum = 504948
+        return "knapsack"
+
+    if prob == "coloring1":
+        optimum = 3
+        return "coloring"
+    if prob == "coloring2":
+        optimum = 3
+        return "coloring"
+    if prob == "coloring3":
+        optimum = 2
+        return "coloring"
+
     return "continuous" # fall back
 
 def extract_convergence(logger):
@@ -47,6 +82,7 @@ def extract_convergence(logger):
 
 
 def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
+    global optimum
     if algo_params is None:
         algo_params = {}
 
@@ -58,7 +94,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
         print(f"Algorithm Params: {algo_params}")
 
     stats = {}
-    optimum = None
+
 
     for algo_name in compatible_algos:
         print(f" -> Running {algo_name.upper()} ({runs} runs)...")
@@ -115,10 +151,10 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
                 print(f"\n  [ERROR] Run {i + 1} failed: {e}")
                 break
 
-    generate_reports(stats, prob_name, optimum)
+    generate_reports(stats, prob_name)
 
 
-def generate_reports(stats, prob_name, optimum=None):
+def generate_reports(stats, prob_name):
     # Create a subfolder for each problem
     out_dir = f"output/{prob_name.lower()}"
     os.makedirs(out_dir, exist_ok=True)

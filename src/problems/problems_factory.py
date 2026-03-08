@@ -24,12 +24,16 @@ def get_problem(name, **kwargs):
 
         "knapsack1": KnapsackProblem,
         "knapsack2": KnapsackProblem,
+        "knapsack3": KnapsackProblem,
 
         "tsp1": TravelSalesmanProblem,
         "tsp2": TravelSalesmanProblem,
+        "tsp3": TravelSalesmanProblem,
+        "tsp4": TravelSalesmanProblem,
 
         "coloring1": GraphColoring,
         "coloring2": GraphColoring,
+        "coloring3": GraphColoring,
 
         # --- Continuous ---
         "sphere": Sphere,
