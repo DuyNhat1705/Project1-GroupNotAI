@@ -62,13 +62,13 @@ def route_solver(prob_name): # route input testcase to problem
 
     if prob == "coloring1":
         optimum = 3
-        return "coloring"
+        return "graphcoloring"
     if prob == "coloring2":
         optimum = 3
-        return "coloring"
+        return "graphcoloring"
     if prob == "coloring3":
         optimum = 2
-        return "coloring"
+        return "graphcoloring"
 
     return "continuous" # fall back
 
