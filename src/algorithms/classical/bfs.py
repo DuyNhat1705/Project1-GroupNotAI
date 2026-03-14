@@ -45,7 +45,7 @@ class BFS(BaseAlgorithm):
             idx, path = current # idx of node
             nodes_expanded += 1
 
-            #logger.history["best_fitness"].append(best_cost)
+            logger.history["best_fitness"].append(best_cost)
             logger.history["current_best"].append(np.array(best_solution))
             # If leaf of the decision tree reached (all nodes colored)
             if idx == problem.dimension:
@@ -67,7 +67,7 @@ class BFS(BaseAlgorithm):
                 if c < problem.dimension:
                     queue.append((idx + 1, path + (c,))) #add new color to path
 
-            logger.log("best_fitness", best_cost)
+            #logger.log("best_fitness", best_cost)
 
         final_solution = np.array(best_solution)
         logger.finish(best_solution=final_solution, best_fitness=best_cost)
@@ -152,7 +152,6 @@ class BFS(BaseAlgorithm):
         logger.history["best_fitness"] = []
         logger.history["visited_edges"] = []
         logger.history["visited_edges"].append((start, start))
-        ite = 0  # iteration count
 
         # start_time = time.perf_counter()
         # time_limit = 10.0  # Time limit to prevent freeze on massive open mazes
@@ -164,7 +163,7 @@ class BFS(BaseAlgorithm):
                 break
 
             current = queue.pop(0)  # pop front
-            ite += 1
+            nodes_expanded += 1
             current_path = self.reconstruct_path(predecessor, current)
             logger.history["best_fitness"].append(problem.evaluate(current_path))
 
