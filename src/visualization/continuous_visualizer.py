@@ -106,7 +106,6 @@ class ContinuousVisualizer(BaseVisualizer):
 
         # ===== CONVERGENCE CHART =====
         best_hist = self.metrics.get("best_fitness", [])
-        print(best_hist)
         avg_hist = self.metrics.get("avg_fitness", [])
 
         conv_best, = ax_conv.plot([], [], "royalblue", lw=2.5, label="Best Fitness")

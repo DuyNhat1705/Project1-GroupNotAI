@@ -94,7 +94,7 @@ class PSO(BaseAlgorithm):
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
             return {"time(ms)": logger.meta["runtime"],
-                    "result": {"best_solution": [], "cost": float('inf'), "logger": logger}}
+                    "result": {"best_solution": [], "best_fitness": float('inf'), "logger": logger}}
         
         n = problem.dimension
         positions = np.random.uniform(0, 1, (self.pop_size, n))
@@ -143,4 +143,4 @@ class PSO(BaseAlgorithm):
         best_tour = pos_to_tour(gbest_pos)
         logger.finish(best_solution=best_tour, best_fitness=gbest_cost)
         return {"time(ms)": logger.meta["runtime"],
-                "result": {"best_solution": best_tour.tolist(), "cost": gbest_cost, "logger": logger}}
+                "result": {"best_solution": best_tour.tolist(), "best_fitness": gbest_cost, "logger": logger}}

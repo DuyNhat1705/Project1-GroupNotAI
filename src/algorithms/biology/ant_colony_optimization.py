@@ -102,7 +102,7 @@ class ACO(BaseAlgorithm):
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
             return {"time(ms)": logger.meta["runtime"],
-                    "result": {"best_solution": [], "cost": float('inf'), "logger": logger}}
+                    "result": {"best_solution": [], "best_fitness": float('inf'), "logger": logger}}
         
         n = problem.dimension
         dist_mat = problem.dist_mat
@@ -152,5 +152,5 @@ class ACO(BaseAlgorithm):
         
         logger.finish(best_solution=best_tour, best_fitness=self.calc_fitness(False, best_cost))
         return {"time(ms)": logger.meta["runtime"],
-                "result": {"best_solution": best_tour, "cost": best_cost, "logger": logger}}
+                "result": {"best_solution": best_tour, "best_fitness": best_cost, "logger": logger}}
 
