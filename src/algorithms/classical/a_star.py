@@ -22,6 +22,7 @@ class A_Star(BaseAlgorithm):
         prior_queue = []
         start = tuple(problem.start)
         goal = tuple(problem.goal)
+        num_iters = self.params.get("num_iters", None)
         maze = problem.maze
         x, y = maze.shape # x = num_rows, y = num_cols
 
@@ -36,7 +37,7 @@ class A_Star(BaseAlgorithm):
         if maze[goal[0], goal[1]] == 1 or maze[start[0], start[1]] == 1:
             logger.finish(best_solution=[], best_fitness=float('inf'))
             return {"time(ms)": logger.meta["runtime"],
-                    "result": {"best_fitness": float('inf'), "path": [], "logger": logger}}
+                    "result": {"cost": float('inf'), "path": [], "logger": logger}}
 
         came_from = {}
         close_states = set()  # admissible heuristic function: euclidean distance
@@ -48,7 +49,7 @@ class A_Star(BaseAlgorithm):
         # Log start node for the visualizer
         logger.history["visited_edges"].append((start, start))
 
-        while prior_queue:
+        while prior_queue and (num_iters is None or num_iters > 0):
             curr_state = heapq.heappop(prior_queue)[1]
             g_cost = best_g[curr_state] + 1
 
@@ -78,6 +79,9 @@ class A_Star(BaseAlgorithm):
                         came_from[key] = curr_state
                         heapq.heappush(prior_queue, (f_cost, key))
                         best_g[key] = g_cost
+            
+            if num_iters is not None:
+                num_iters -= 1
 
         # g_cost need to be correspond to the curr_state
         self.reconstruct_path(came_from, start, goal)
@@ -90,7 +94,7 @@ class A_Star(BaseAlgorithm):
         return {
             "time(ms)": logger.meta["runtime"],
             "result": {
-                "best_fitness": final_cost,
+                "cost": final_cost,
                 "path": self.params["path"],
                 "nodes_expanded": len(logger.history["visited_edges"]),  # <-- DISCRETE METRIC
                 "logger": logger

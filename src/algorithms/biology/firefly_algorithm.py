@@ -108,7 +108,7 @@ class FireflyAlgorithm(BaseAlgorithm):
         if not hasattr(problem, 'dist_mat'):
             logger.finish(best_solution=[], best_fitness=float('inf'))
             return {"time(ms)": logger.meta["runtime"],
-                    "result": {"best_solution": [], "cost": float('inf'), "logger": logger}}
+                    "result": {"best_solution": [], "best_fitness": float('inf'), "logger": logger}}
         
         n = problem.dimension
         tsp_diameter = math.sqrt(n)  # TSP positions in [0,1]^n
@@ -171,4 +171,4 @@ class FireflyAlgorithm(BaseAlgorithm):
         best_tour = pos_to_tour(best_firefly)
         logger.finish(best_solution=best_tour, best_fitness=best_cost)
         return {"time(ms)": logger.meta["runtime"],
-                "result": {"best_solution": best_tour.tolist(), "cost": best_cost, "logger": logger}}
+                "result": {"best_solution": best_tour.tolist(), "best_fitness": best_cost, "logger": logger}}

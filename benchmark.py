@@ -18,8 +18,8 @@ from src.HandleCLI import parse_param_string
 COMPATIBILITY = {
     "continuous": ["abc", "sa", "hc", "pso", "cs", "fa", "aco", "ga", "de", "tlbo"],
     "tsp": ["sa", "hc", "pso", "fa", "aco", "ga", "astar"],
-    "maze": ["astar", "bfs", "dfs", "ga"],
-    "knapsack": ["abc", "bfs", "cs", "tlbo"],
+    "maze": ["bfs", "dfs", "astar", "ga"],
+    "knapsack": ["bfs", "dfs", "abc", "cs", "tlbo"],
     "graphcoloring": ["bfs", "dfs", "sa", "hc"]
 } #match problem with available algorithms
 
@@ -109,7 +109,7 @@ def run_benchmark(prob_name, runs=30, dim=10, algo_params=None):
             algo = get_algorithm(algo_name, **algo_params)
 
             timeout_flag = [False]
-            timer = threading.Timer(300.0, timeout_handler, args=[timeout_flag]) #time out = 90s
+            timer = threading.Timer(3000.0, timeout_handler, args=[timeout_flag]) #time out = 90s
 
             tracemalloc.start()
             start_time = time.perf_counter()
