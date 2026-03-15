@@ -303,10 +303,23 @@ Outputs are saved to `output/<problem>/`.
 ### Parameter Sensitivity Analysis — `para_sen.py`
 
 ```bash
-python para_sen.py --problem <PROBLEM> [--dim <DIM>]
+python para_sen.py
 ```
 
+`para_sen.py` currently runs predefined test cases from the `test_cases` list inside the script.
+To analyze a specific problem, edit `test_cases` in `para_sen.py` before running.
+
 Outputs are saved to `output/sensitivity_analysis/`.
+
+Expected output files are:
+- `output/sensitivity_analysis/<problem>_Sensitivity_Analysis.pdf`
+- `output/sensitivity_analysis/<problem>_Sensitivity_Analysis.csv`
+
+With the current default `test_cases` in `para_sen.py`, typical outputs include:
+- `output/sensitivity_analysis/michalewicz_Sensitivity_Analysis.pdf`
+- `output/sensitivity_analysis/michalewicz_Sensitivity_Analysis.csv`
+- `output/sensitivity_analysis/tsp1_Sensitivity_Analysis.pdf`
+- `output/sensitivity_analysis/knapsack1_Sensitivity_Analysis.pdf`
 
 ---
 
@@ -368,12 +381,11 @@ python benchmark.py --problem maze2 --runs 10 --params pop_size=30 num_iters=100
 ### Parameter sensitivity analysis
 
 ```bash
-python para_sen.py --problem sphere --dim 10
-python para_sen.py --problem tsp2
-python para_sen.py --problem knapsack1
+python para_sen.py
 ```
 
-> Note: command examples should be adjusted if your local repository uses different file names, argument defaults, or configuration values.
+Then adjust `test_cases` in `para_sen.py` to control which problems are analyzed.
+
 
 ---
 
@@ -402,6 +414,9 @@ Depending on the number of tunable parameters:
 - one-parameter analysis may be shown as a line plot
 - two-parameter analysis may be shown as a heatmap or contour-style figure
 
+Current script coverage is based on the internal compatibility map in `para_sen.py`.
+At present, `graphcoloring` and `shortestpathongraph` are not included in sensitivity runs.
+
 Saved outputs may include:
 - `<problem>_Sensitivity_Analysis.pdf`
 - `<problem>_Sensitivity_Analysis.csv`
@@ -415,6 +430,9 @@ Depending on the current repository state, the `output/` directory may contain g
 - JSON benchmark summaries
 - PDF convergence, robustness, and complexity plots
 - PDF/CSV sensitivity analysis results
+
+Sensitivity analysis outputs are written to:
+- `output/sensitivity_analysis/`
 
 ---
 
